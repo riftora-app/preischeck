@@ -1,4 +1,4 @@
-/* Preis-Check v4 – Foto rein, Ergebnis raus. Eigene App (GitHub) und Bereich in NoxRift – dieselbe Datei */
+/* Preis-Check v5 – Foto rein, Ergebnis raus. Eigene App (GitHub) und Bereich in NoxRift – dieselbe Datei */
 (function () {
   const css = `
 .pc{--pb:#0b1020;--pp:#141b2f;--pp2:#1c2540;--pl:#2b3655;--pt:#eef2fb;--pm:#94a0bd;--pv:#7c6cf0;color:var(--pt);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:grid;gap:14px;max-width:640px;margin:0 auto;width:100%}
@@ -54,29 +54,83 @@
   const lj = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || 'null') || d; } catch (x) { return d; } };
   const ls = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (x) {} };
 
-  /* Nur offizielle Seiten großer Marktplätze und Preisdatenbanken */
+  /* Nur offizielle Seiten großer Marktplätze, Ankäufer und Preisdatenbanken */
   const Q = {
-    ebay: ['eBay – wirklich verkauft', 'https://www.ebay.de/sch/i.html?_nkw={q}&LH_Sold=1&LH_Complete=1&_sop=13'],
+    ebay: ['eBay', 'https://www.ebay.de/sch/i.html?_nkw={q}&LH_Sold=1&LH_Complete=1&_sop=13'],
     cardmarket: ['Cardmarket', 'https://www.cardmarket.com/de/{g}/Products/Search?searchString={q}'],
-    vinted: ['Vinted', 'https://www.vinted.de/catalog?search_text={q}&order=price_low_to_high'],
+    vinted: ['Vinted', 'https://www.vinted.de/catalog?search_text={q}'],
     kleinanzeigen: ['Kleinanzeigen', 'https://www.kleinanzeigen.de/s-{k}/k0'],
     pricecharting: ['PriceCharting', 'https://www.pricecharting.com/search-products?type=prices&q={q}'],
-    rebuy: ['rebuy', 'https://www.rebuy.de/kaufen/suchen?q={q}'],
+    rebuy: ['rebuy Ankauf', 'https://www.rebuy.de/verkaufen/suchen?q={q}'],
+    rebuyk: ['rebuy Shop', 'https://www.rebuy.de/kaufen/suchen?q={q}'],
+    momox: ['momox Ankauf', 'https://www.momox.de/'],
+    zoxs: ['ZOXS Ankauf', 'https://www.zoxs.de/'],
+    wirkaufens: ['wirkaufens', 'https://www.wirkaufens.de/'],
     idealo: ['idealo (neu)', 'https://www.idealo.de/preisvergleich/MainSearchProductCategory.html?q={q}'],
+    geizhals: ['Geizhals (neu)', 'https://geizhals.de/?fs={q}'],
+    amazon: ['Amazon (neu)', 'https://www.amazon.de/s?k={q}'],
     tcgplayer: ['TCGplayer', 'https://www.tcgplayer.com/search/all/product?q={q}'],
     stockx: ['StockX', 'https://stockx.com/de-de/search?s={q}'],
+    klekt: ['KLEKT', 'https://www.klekt.com/'],
     grailed: ['Grailed', 'https://www.grailed.com/shop?query={q}'],
+    vestiaire: ['Vestiaire Collective', 'https://de.vestiairecollective.com/search/?q={q}'],
     chrono24: ['Chrono24', 'https://www.chrono24.de/search/index.htm?query={q}'],
     gold: ['Goldpreis heute', 'https://www.gold.de/kurse/goldpreis/'],
+    silber: ['Silberpreis heute', 'https://www.gold.de/kurse/silberpreis/'],
+    etsy: ['Etsy', 'https://www.etsy.com/de/search?q={q}'],
+    catawiki: ['Catawiki', 'https://www.catawiki.com/de/s?q={q}'],
     bricklink: ['BrickLink', 'https://www.bricklink.com/v2/search.page?q={q}'],
     brickeconomy: ['BrickEconomy', 'https://www.brickeconomy.com/search?query={q}'],
+    discogs: ['Discogs', 'https://www.discogs.com/search/?q={q}&type=all'],
+    numista: ['Numista', 'https://de.numista.com/catalogue/index.php?r={q}'],
+    delcampe: ['Delcampe', 'https://www.delcampe.net/de/sammlerobjekte/search?term={q}'],
     backmarket: ['Back Market', 'https://www.backmarket.de/de-de/search?q={q}'],
     zvab: ['ZVAB', 'https://www.zvab.com/servlet/SearchResults?kn={q}']
   };
-  const MEHR = {spiele: ['ebay', 'pricecharting', 'vinted', 'kleinanzeigen', 'rebuy'], technik: ['ebay', 'kleinanzeigen', 'rebuy', 'backmarket', 'idealo'], karten: ['cardmarket', 'ebay', 'pricecharting', 'tcgplayer', 'vinted'], sport: ['ebay', 'vinted', 'kleinanzeigen', 'tcgplayer'], kleidung: ['ebay', 'vinted', 'stockx', 'grailed', 'kleinanzeigen'], schmuck: ['ebay', 'chrono24', 'gold', 'vinted', 'kleinanzeigen'], sammeln: ['ebay', 'pricecharting', 'bricklink', 'brickeconomy', 'vinted'], sportartikel: ['ebay', 'kleinanzeigen', 'vinted', 'idealo'], medien: ['ebay', 'rebuy', 'zvab', 'vinted']};
+  /* Wo es am ehesten weggeht: Seite, Grund, Gebühr in % (für den Gewinn) */
+  const WO = {
+    karten: ['cardmarket', 'Einzelkarten verkaufen sich auf Cardmarket am schnellsten – dort kaufen die Sammler.', 5],
+    graded: ['ebay', 'Gegradete Karten (PSA, CGC …) bringen auf eBay am meisten.', 13],
+    sport: ['ebay', 'Sportkarten und Sticker gehen auf eBay am besten weg.', 13],
+    spiele: ['ebay', 'Spiele gehen auf eBay am schnellsten zum fairen Preis weg – verkaufte Angebote zeigen den echten Wert.', 13],
+    technik: ['ebay', 'Technik bringt auf eBay am meisten. Schnell und ohne Stress: Ankauf bei rebuy oder ZOXS.', 13],
+    kleidung: ['vinted', 'Kleidung geht auf Vinted am schnellsten weg – ohne Verkaufsgebühr.', 0],
+    sneaker: ['stockx', 'Gesuchte Sneaker bringen bei StockX am meisten, getragene eher auf Vinted oder eBay.', 10],
+    luxus: ['vestiaire', 'Designer-Sachen erzielen auf Vestiaire Collective die besten Preise – mit Echtheitsprüfung.', 15],
+    uhr: ['chrono24', 'Markenuhren verkaufen sich auf Chrono24 am besten.', 7],
+    gold: ['gold', 'Gold und Silber: zuerst den Tagespreis prüfen, dann beim Ankäufer vor Ort oder auf eBay verkaufen.', 0],
+    schmuck: ['vinted', 'Modeschmuck geht auf Vinted am schnellsten weg, Handgemachtes auf Etsy.', 0],
+    lego: ['bricklink', 'LEGO-Sets und Teile bringen auf BrickLink am meisten, komplette Sets auch auf eBay.', 3],
+    vinyl: ['discogs', 'Schallplatten verkaufen sich auf Discogs am besten.', 8],
+    muenzen: ['ebay', 'Münzen: Wert auf Numista prüfen, verkaufen auf eBay oder Catawiki.', 13],
+    marken: ['delcampe', 'Briefmarken und Postkarten verkaufen sich auf Delcampe am besten.', 8],
+    sammeln: ['ebay', 'Sammelsachen gehen auf eBay am besten weg – dort suchen die meisten Sammler.', 13],
+    sportartikel: ['kleinanzeigen', 'Große Sportsachen am besten auf Kleinanzeigen – Abholung, keine Gebühr.', 0],
+    medien: ['momox', 'Bücher, CDs und DVDs: Barcode bei momox scannen – schnellster Verkauf. Seltenes lieber auf eBay.', 0]
+  };
+  const MEHR = {
+    karten: ['cardmarket', 'ebay', 'pricecharting', 'tcgplayer', 'vinted', 'kleinanzeigen'], graded: ['ebay', 'pricecharting', 'cardmarket', 'tcgplayer', 'catawiki'],
+    sport: ['ebay', 'cardmarket', 'vinted', 'kleinanzeigen', 'delcampe'], spiele: ['ebay', 'pricecharting', 'kleinanzeigen', 'vinted', 'rebuy', 'zoxs', 'momox', 'rebuyk'],
+    technik: ['ebay', 'kleinanzeigen', 'rebuy', 'zoxs', 'wirkaufens', 'backmarket', 'idealo', 'geizhals'], kleidung: ['vinted', 'ebay', 'kleinanzeigen', 'grailed', 'vestiaire'],
+    sneaker: ['stockx', 'klekt', 'ebay', 'vinted', 'grailed'], luxus: ['vestiaire', 'ebay', 'vinted', 'grailed', 'catawiki'],
+    uhr: ['chrono24', 'ebay', 'catawiki', 'kleinanzeigen'], gold: ['gold', 'silber', 'ebay', 'kleinanzeigen', 'catawiki'],
+    schmuck: ['vinted', 'etsy', 'ebay', 'gold', 'kleinanzeigen'], lego: ['bricklink', 'brickeconomy', 'ebay', 'kleinanzeigen', 'vinted'],
+    vinyl: ['discogs', 'ebay', 'kleinanzeigen', 'momox'], muenzen: ['numista', 'ebay', 'catawiki', 'gold', 'silber'],
+    marken: ['delcampe', 'ebay', 'catawiki'], sammeln: ['ebay', 'pricecharting', 'kleinanzeigen', 'vinted', 'catawiki', 'etsy'],
+    sportartikel: ['kleinanzeigen', 'ebay', 'vinted', 'idealo'], medien: ['momox', 'rebuy', 'ebay', 'zvab', 'discogs', 'vinted']
+  };
   const CMG = {pokemon: 'Pokemon', yugioh: 'YuGiOh', magic: 'Magic', onepiece: 'OnePiece', lorcana: 'Lorcana', dragonball: 'DragonBallSuper', digimon: 'Digimon', fleshandblood: 'FleshAndBlood'};
   const link = (id, q, g) => { const enc = encodeURIComponent(q || ''), ka = encodeURIComponent(String(q || '').toLowerCase().replace(/\s+/g, '-')); return Q[id][1].replace('{q}', enc).replace('{k}', ka).replace('{g}', g || 'Pokemon'); };
-
+  /* genauere Sorte aus dem Namen erkennen */
+  function sorte(t, kat) { t = String(t || '');
+    if (/\b(psa|cgc|bgs|beckett)\s*\d/i.test(t)) return 'graded';
+    if (/\blego\b/i.test(t)) return 'lego'; if (/vinyl|schallplatte|\blp\b|single 7/i.test(t)) return 'vinyl';
+    if (/m[üu]nze|euro-?gedenk|taler|mark 19/i.test(t)) return 'muenzen'; if (/briefmarke|postkarte/i.test(t)) return 'marken';
+    if (/rolex|omega|seiko|casio|tissot|swatch|armbanduhr|\buhr\b/i.test(t)) return 'uhr';
+    if (/\b(333|375|585|750|925)\b|gold|silber/i.test(t) && !/pok|karte|edition/i.test(t)) return 'gold';
+    if (/gucci|prada|louis vuitton|chanel|dior|herm[eè]s|balenciaga|moncler|burberry/i.test(t)) return 'luxus';
+    if (/jordan|yeezy|dunk|sneaker|air max|new balance 550/i.test(t)) return 'sneaker';
+    return WO[kat] ? kat : 'spiele'; }
   let modus = lj('pc-modus', 'kaufen'), foto = null, fotoKlein = '', sample = null, R = null;
   const root = document.getElementById('pc-root'); if (!root) return; root.className = 'pc';
 
@@ -146,17 +200,21 @@
     if (R.echtheit && !/^ok/i.test(R.echtheit)) c.append(e('div', 'pc-warn', '🛡️ ' + R.echtheit));
     if (R.verkauf && !R.echt) { const w = e('div', 'pc-wert'); const l = e('div'); l.append(e('div', 's', '🤖 Claude schätzt'), e('div', 'z', eur(R.verkauf))); w.append(l, e('div', 's', (R.von || R.bis) ? eur(R.von) + ' – ' + eur(R.bis) : '')); c.append(w); if (R.grund) c.append(e('div', 'm', (R.selten ? '💎 ' : 'ℹ️ ') + R.grund)); c.append(e('div', 'pc-warn', '⚠️ Nur eine Schätzung – sie kann deutlich zu niedrig sein. Vor dem Verkaufen IMMER den blauen Knopf tippen.')); }
 
-    const best = R.beste_seite && Q[R.beste_seite] ? R.beste_seite : (kat === 'karten' ? 'cardmarket' : 'ebay');
-    const a = e('a', 'pc-best', '🔎 Echte Preise auf ' + Q[best][0]); a.href = link(best, q, g); a.target = '_blank'; a.rel = 'noopener'; a.append(e('small', '', best === 'ebay' ? 'Verkaufte Angebote, neueste zuerst' : 'Preisverlauf und günstigstes Angebot')); c.append(a);
-    const mini = e('div', 'pc-mini'); (MEHR[kat] || MEHR.spiele).filter(id => id !== best).forEach(id => { const x = e('a', '', Q[id][0]); x.href = link(id, q, g); x.target = '_blank'; x.rel = 'noopener'; mini.append(x); }); c.append(mini);
+    const so = sorte(R.artikel + ' ' + (R.suchbegriff || ''), kat); const wo = WO[so] || WO.spiele;
+    const best = R.beste_seite && Q[R.beste_seite] && !R.ohneKI ? R.beste_seite : wo[0];
+    const rk = e('div', 'pc-amp'); rk.style.setProperty('--ac', '#3b82f6');
+    rk.append(e('div', 'k', '🏆 Am ehesten weg: ' + Q[best][0]), e('div', '', (R.verkauf ? 'Realistisch ca. ' + eur(R.verkauf) + (R.von && R.bis ? ' (' + eur(R.von) + ' – ' + eur(R.bis) + ')' : '') + '. ' : '') + wo[1]));
+    c.append(rk);
+    const a = e('a', 'pc-best', '👉 Direkt zu ' + Q[best][0]); a.href = link(best, q, g); a.target = '_blank'; a.rel = 'noopener'; a.append(e('small', '', best === 'ebay' ? 'Verkaufte Angebote, neueste zuerst – das ist der echte Wert' : 'Preise vergleichen und dort verkaufen')); c.append(a);
+    const mini = e('div', 'pc-mini'); (MEHR[so] || MEHR.spiele).filter(id => id !== best).forEach(id => { const x = e('a', '', Q[id][0]); x.href = link(id, q, g); x.target = '_blank'; x.rel = 'noopener'; mini.append(x); }); c.append(mini);
 
     if (modus === 'kaufen') {
       const zw = e('div', 'pc-2'); const wl = e('div'); const kl = e('div');
-      const w = e('input'); w.type = 'number'; w.inputMode = 'decimal'; w.placeholder = 'Wert laut eBay €'; if (R.verkauf) w.value = R.verkauf;
+      const w = e('input'); w.type = 'number'; w.inputMode = 'decimal'; w.placeholder = 'z. B. 40 €'; if (R.verkauf) w.value = R.verkauf;
       const p = e('input'); p.type = 'number'; p.inputMode = 'decimal'; p.placeholder = 'Preis am Stand €';
       wl.append(e('div', 'pc-lbl', '💰 Verkaufswert'), w); kl.append(e('div', 'pc-lbl', '🏷️ Kostet hier'), p); zw.append(wl, kl); c.append(zw); const amp = e('div'); c.append(amp);
-      const rech = () => { amp.replaceChildren(); const k = zahl(p.value), v = zahl(w.value); if (!k || !v) { if (!v) amp.append(e('div', 'pc-hint', 'Blauen Knopf tippen, den üblichen Verkaufspreis links eintragen – dann zeigt die Ampel, ob es sich lohnt.')); return; }
-        const q2 = k / v; const gew = v * 0.87 - k; const d = e('div', 'pc-amp'); let ac, t, s;
+      const rech = () => { amp.replaceChildren(); const k = zahl(p.value), v = zahl(w.value); if (!k || !v) { if (!v) amp.append(e('div', 'pc-hint', 'Auf „Direkt zu …“ tippen, den üblichen Verkaufspreis links eintragen – dann zeigt die Ampel, ob es sich lohnt.')); return; }
+        const q2 = k / v; const gew = v * (1 - wo[2] / 100) - 2 - k; const d = e('div', 'pc-amp'); let ac, t, s;
         if (q2 <= 0.5) { ac = '#22c55e'; t = '🟢 KAUFEN!'; s = 'Ca. ' + eur(gew) + ' Gewinn nach Gebühren und Versand.'; }
         else if (q2 <= 0.65) { ac = '#f59e0b'; t = '🟡 Handeln'; s = 'Biete ' + eur(Math.floor(v * 0.45)) + ' – dann lohnt es sich.'; }
         else { ac = '#ef4444'; t = '🔴 Lass liegen'; s = gew > 0 ? 'Nur ca. ' + eur(gew) + ' Gewinn – zu wenig für das Risiko.' : 'Kein Gewinn drin.'; }
