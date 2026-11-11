@@ -201,7 +201,7 @@
     const so = sorte(R.artikel + ' ' + (R.suchbegriff || ''), kat); const wo = WO[so] || WO.spiele;
     const best = R.beste_seite && Q[R.beste_seite] && !R.ohneKI ? R.beste_seite : wo[0];
     const rk = e('div', 'pc-amp'); rk.style.setProperty('--ac', '#3b82f6');
-    rk.append(e('div', 'k', '🏆 Am ehesten weg: ' + Q[best][0]), e('div', '', (R.verkauf ? 'Realistisch ca. ' + eur(R.verkauf) + (R.von && R.bis ? ' (' + eur(R.von) + ' – ' + eur(R.bis) + ')' : '') + '. ' : '') + wo[1]));
+    rk.append(e('div', 'k', best === 'gold' ? '🏆 Gold/Silber: erst Tagespreis prüfen' : '🏆 Am ehesten weg: ' + Q[best][0]), e('div', '', (R.verkauf ? 'Realistisch ca. ' + eur(R.verkauf) + (R.von && R.bis ? ' (' + eur(R.von) + ' – ' + eur(R.bis) + ')' : '') + '. ' : '') + wo[1]));
     c.append(rk);
     const a = e('a', 'pc-best', '👉 Direkt zu ' + Q[best][0]); a.href = link(best, q, g); a.target = '_blank'; a.rel = 'noopener'; a.append(e('small', '', best === 'ebay' ? 'Verkaufte Angebote, neueste zuerst – das ist der echte Wert' : 'Preise vergleichen und dort verkaufen')); c.append(a);
     const mini = e('div', 'pc-mini'); (MEHR[so] || MEHR.spiele).filter(id => id !== best).forEach(id => { const x = e('a', '', Q[id][0]); x.href = link(id, q, g); x.target = '_blank'; x.rel = 'noopener'; mini.append(x); }); c.append(mini);
