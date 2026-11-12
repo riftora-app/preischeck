@@ -219,7 +219,7 @@
   const schoen = v => v < 5 ? Math.round(v * 2) / 2 - 0.01 : v < 50 ? Math.ceil(v) - 0.01 : Math.ceil(v / 5) * 5 - 0.01;
   function empf(id) { const w = werte(S.preise[id]); if (!w.length) return null; const pr = median(w); const f = (TEMPO[S.tempo] || TEMPO.max)[1];
     const start = Math.max(0.99, schoen(pr * f)); const n = Math.max(1, +S.menge || 1); const netto = start * (1 - P[id].fee / 100);
-    const kosten = zahl(S.ek) + zahl(S.versand); return {pr, n: w.length, start, min: Math.round(pr * 0.9 * 10) / 10, netto, gewinn: netto * n - kosten, stueck: n > 1 ? start / n : 0}; }
+    const kosten = zahl(S.ek) + zahl(S.versand); return {pr, n: w.length, start, min: Math.round(pr * 0.9 * 10) / 10, netto, gewinn: netto - kosten, stueck: n > 1 ? start / n : 0}; }
   const bester = () => plats().map(id => ({id, x: empf(id)})).filter(o => o.x).sort((a, b) => b.x.netto - a.x.netto)[0];
   /* Fotos dauerhaft auf dem Gerät (IndexedDB) */
   const idb = () => new Promise((ok, no) => { try { const r = indexedDB.open('hustle-radar', 1); r.onupgradeneeded = () => r.result.createObjectStore('fotos'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); } catch (x) { no(x); } });
