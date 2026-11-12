@@ -1,4 +1,4 @@
-/* Preis-Check v6 – Fotos + Zustand rein, ChatGPT (oder Claude) liefert Titel, Beschreibung, Preis.
+/* Preis-Check v7 – Fotos rein, KI erkennt Zustand + Titel + Beschreibung; Antwort einfügen füllt alles automatisch.
    Preis immer aus dem letzten ECHTEN Verkauf der Plattform mit dem meisten Gewinn (max. 30 Tage alt).
    Eigene App (GitHub) und Bereich in NoxRift – dieselbe Datei. */
 (function () {
@@ -92,7 +92,7 @@
   const link = (id, q) => P[id].url.replace('{q}', encodeURIComponent(q || '')).replace('{k}', encodeURIComponent(String(q || '').toLowerCase().trim().replace(/\s+/g, '-')));
   const MAX_TAGE = 30;
 
-  const neuS = () => ({art: '', zustand: '', extra: [], maengel: '', name: '', fotos: [], kostet: '', preise: {}, antwort: ''});
+  const neuS = () => ({art: '', zustand: '', extra: [], maengel: '', name: '', fotos: [], kostet: '', preise: {}, ai: {}});
   let S = Object.assign(neuS(), lj('pc-s6', {}), {fotos: []});
   let modus = lj('pc-modus', 'verkaufen'), sample = null, laeuft = false;
   const speichern = () => { const {fotos, ...rest} = S; ls('pc-s6', rest); };
@@ -116,6 +116,7 @@
     z.push('Fotos: ' + S.fotos.length + (S.fotos.length ? ' (' + A.fotos.slice(0, S.fotos.length).join(', ') + ')' : ''));
     if (modus === 'kaufen') z.push('Kostet hier: ' + (S.kostet ? eur(zahl(S.kostet)) : '?') + ' – lohnt sich der Kauf zum Weiterverkaufen?');
     z.push('', 'Bitte nach den NOXRIFT-Regeln: echte VERKAUFTE Preise der letzten ' + MAX_TAGE + ' Tage suchen (' + A.plat.map(p => P[p].l).join(', ') + '), je Plattform den letzten Verkauf mit Preis, Datum und Link. Nimm die Plattform, die nach Gebühren am meisten bringt (eBay privat 0 %, Vinted 0 %, Kleinanzeigen 0 %, Cardmarket 5 %). Ältere Verkäufe nur mit Hinweis, Preistrend nennen (steigt/fällt). Zustand in Titel, Beschreibung und Preis berücksichtigen.' + (modus === 'kaufen' ? ' Antwort: Kaufen / Handeln (mit Gegenangebot) / Liegen lassen, Gewinn in €.' : ' Danach Titel, Beschreibung, Startpreis und Mindestpreis im gewohnten Format.'));
+    z.push(...['', 'GANZ AM ENDE bitte zusätzlich genau diesen Block (für unsere App, nichts weglassen):', '=== APP ===', 'ZUSTAND: <Zustand laut Fotos>', 'MÄNGEL: <kurz oder keine>', 'TITEL: <Titel zum Kopieren>', 'BESCHREIBUNG: <Beschreibung zum Kopieren, darf mehrere Zeilen haben>'].concat(A.plat.map(p => 'VERKAUF ' + P[p].l + ': <Preis> € am <TT.MM.JJJJ> | <Link>')), '=== ENDE ===');
     return z.join('\n');
   }
 
@@ -139,8 +140,8 @@
     const fc = (A || ARTEN.sonst).fotos; const ck = e('div', 'pc-check'); fc.forEach((t, i) => ck.append(e('span', i < S.fotos.length ? 'ok' : '', (i < S.fotos.length ? '✓ ' : '○ ') + t))); c2.append(e('div', 'm', 'Foto-Check:'), ck); root.append(c2);
 
     /* 3 · Zustand */
-    const c3 = e('section', 'pc-c'); c3.append(kopf(3, 'Zustand', !!S.zustand));
-    c3.append(chips((A || ARTEN.sonst).zust.map(z => [z, z]), S.zustand, k => { S.zustand = S.zustand === k ? '' : k; speichern(); bau(); }));
+    const c3 = e('section', 'pc-c'); c3.append(kopf(3, 'Zustand', !!S.zustand || S.fotos.length > 0));
+    c3.append(e('div', 'm', 'Leer lassen = die KI erkennt den Zustand auf den Fotos.'), chips([['', '🤖 Aus Fotos erkennen']].concat((A || ARTEN.sonst).zust.map(z => [z, z])), S.zustand, k => { S.zustand = k; speichern(); bau(); }));
     c3.append(e('div', 'm', 'Dabei / geprüft (antippen):'), chips((A || ARTEN.sonst).extra.map(z => [z, z]), S.extra, k => { S.extra = S.extra.includes(k) ? S.extra.filter(x => x !== k) : S.extra.concat(k); speichern(); bau(); }, true));
     const mi = e('textarea'); mi.placeholder = 'Mängel ehrlich notieren, z. B. „Hülle Ecke gerissen, Disc leichte Kratzer“'; mi.value = S.maengel; mi.addEventListener('input', () => { S.maengel = mi.value; speichern(); }); c3.append(mi);
     if (modus === 'kaufen') { const k = e('input'); k.type = 'number'; k.inputMode = 'decimal'; k.placeholder = '🏷️ Kostet hier (€)'; k.value = S.kostet; k.addEventListener('input', () => { S.kostet = k.value; speichern(); }); c3.append(k); }
@@ -148,7 +149,7 @@
 
     /* 4 · Senden */
     const c4 = e('section', 'pc-c'); c4.id = 'pc-senden'; c4.append(kopf(4, sample ? 'Prüfen lassen' : 'An ChatGPT schicken'));
-    const fehlt = []; if (!S.art) fehlt.push('Art'); if (!S.fotos.length) fehlt.push('mind. 1 Foto'); if (!S.zustand) fehlt.push('Zustand');
+    const fehlt = []; if (!S.art) fehlt.push('Art'); if (!S.fotos.length) fehlt.push('mind. 1 Foto');
     if (fehlt.length) c4.append(e('div', 'pc-hint', 'Noch offen: ' + fehlt.join(' · ')));
     if (sample) { const b = e('button', 'pc-go lila'); b.type = 'button'; b.append('🤖 Claude prüft jetzt', e('small', '', 'Erkennt den Artikel, sucht den letzten Verkauf, schreibt Titel + Beschreibung')); b.disabled = !!fehlt.length || laeuft; b.addEventListener('click', claudeCheck); c4.append(b); }
     const sb = e('button', 'pc-go'); sb.type = 'button'; sb.append('📤 Fotos + Text an ChatGPT', e('small', '', 'Text wird kopiert · im Teilen-Menü „ChatGPT“ wählen · im Chat einfügen, falls er fehlt')); sb.disabled = !!fehlt.length; sb.addEventListener('click', teilen); c4.append(sb);
@@ -163,6 +164,7 @@
     const pl = e('input'); pl.placeholder = 'https://chatgpt.com/g/…'; pl.value = proj; pl.addEventListener('change', () => { const v = pl.value.trim(); ls('pc-gpt', /^https:\/\/chatgpt\.com\//.test(v) ? v : ''); bau(); }); dt.append(pl);
     c4.append(dt); root.append(c4);
 
+    root.append(antwortKarte());
     /* 5 · Preis festlegen */
     root.append(preisKarte());
     const ab = e('div', 'pc-2'); const nb = e('button', 'pc-go grau', '🆕 Nächster Artikel'); nb.type = 'button'; nb.addEventListener('click', () => { merken(); S = neuS(); speichern(); bau(); window.scrollTo && window.scrollTo({top: 0, behavior: 'smooth'}); });
@@ -213,6 +215,51 @@
     rechne(); return c;
   }
 
+  /* 4b · Antwort einfügen: Zustand, Titel, Beschreibung und Preise automatisch übernehmen */
+  function lesen(t) {
+    t = String(t || ''); const a = t.indexOf('=== APP ==='); if (a >= 0) t = t.slice(a + 11); t = t.split('=== ENDE ===')[0];
+    const K = ['ZUSTAND', 'MÄNGEL', 'MAENGEL', 'TITEL', 'BESCHREIBUNG', 'VERKAUF']; const out = {preise: {}}; let cur = null;
+    t.split(/\r?\n/).forEach(z => { const r = z.replace(/^[\s*_#>-]+/, '').replace(/\*\*/g, ''); const m = r.match(/^(ZUSTAND|MÄNGEL|MAENGEL|TITEL|BESCHREIBUNG|VERKAUF)\b\s*([^:]*):\s*(.*)$/i);
+      if (m && K.includes(m[1].toUpperCase())) { const k = m[1].toUpperCase().replace('MAENGEL', 'MÄNGEL');
+        if (k === 'VERKAUF') { const pl = Object.keys(P).find(p => m[2].toLowerCase().includes(P[p].l.toLowerCase())); const v = m[3];
+          const pr = (v.match(/(\d+(?:[.,]\d{1,2})?)\s*€|€\s*(\d+(?:[.,]\d{1,2})?)/) || []); const preis = pr[1] || pr[2];
+          let d = ''; const d1 = v.match(/(\d{1,2})\.(\d{1,2})\.(\d{2,4})/), d2 = v.match(/(\d{4})-(\d{2})-(\d{2})/);
+          if (d2) d = d2[0]; else if (d1) d = (d1[3].length === 2 ? '20' + d1[3] : d1[3]) + '-' + d1[2].padStart(2, '0') + '-' + d1[1].padStart(2, '0');
+          const ln = (v.match(/https:\/\/\S+/) || [''])[0].replace(/[)\].,]+$/, '');
+          if (pl && preis) out.preise[pl] = {p: preis.replace(',', '.'), d, l: ln}; cur = null; }
+        else { out[k] = m[3].trim(); cur = k; } }
+      else if (cur === 'BESCHREIBUNG' || cur === 'MÄNGEL') out[cur] += (out[cur] ? '\n' : '') + z.trimEnd(); });
+    if (out.BESCHREIBUNG) out.BESCHREIBUNG = out.BESCHREIBUNG.trim();
+    return out.TITEL || out.BESCHREIBUNG || Object.keys(out.preise).length ? out : null;
+  }
+  function uebernehmen(t) {
+    const j = lesen(t); if (!j) return false;
+    S.ai = {titel: j.TITEL || '', beschreibung: j.BESCHREIBUNG || '', zustand: j.ZUSTAND || '', maengel: j['MÄNGEL'] || ''};
+    if (j.ZUSTAND && !S.zustand) S.zustand = j.ZUSTAND; if (j['MÄNGEL'] && !S.maengel.trim() && !/^keine/i.test(j['MÄNGEL'])) S.maengel = j['MÄNGEL'];
+    if (j.TITEL && !S.name.trim()) S.name = j.TITEL;
+    Object.entries(j.preise).forEach(([p, v]) => { S.preise[p] = v; }); speichern(); bau();
+    const z = document.getElementById('pc-antwort'); if (z && z.scrollIntoView) z.scrollIntoView({behavior: 'smooth', block: 'start'}); return true;
+  }
+  function antwortKarte() {
+    const c = e('section', 'pc-c'); c.id = 'pc-antwort'; const ai = S.ai || {};
+    c.append(kopf('4b', 'Antwort einfügen → alles fertig', !!(ai.titel || ai.beschreibung)));
+    if (!ai.titel && !ai.beschreibung) c.append(e('div', 'pc-hint', 'ChatGPT-Antwort komplett kopieren und hier einfügen – Zustand, Titel, Beschreibung und Preise werden automatisch übernommen.'));
+    const ta = e('textarea'); ta.placeholder = 'Antwort von ChatGPT hier einfügen'; ta.style.minHeight = '80px';
+    const r = e('div', 'pc-2'); const ib = e('button', 'pc-go lila', '📥 Aus Zwischenablage'); ib.type = 'button';
+    const ub = e('button', 'pc-go grau', '✅ Übernehmen'); ub.type = 'button'; const msg = e('div');
+    const go = t => { msg.replaceChildren(); if (!uebernehmen(t)) msg.append(e('div', 'pc-warn', 'Kein App-Block gefunden. In ChatGPT „Bitte noch den APP-Block“ schreiben und die Antwort erneut einfügen.')); };
+    ib.addEventListener('click', async () => { try { const t = await navigator.clipboard.readText(); ta.value = t; go(t); } catch (x) { msg.replaceChildren(e('div', 'pc-hint', 'Einfügen ging nicht automatisch – lange ins Feld tippen → „Einfügen“, dann „Übernehmen“.')); } });
+    ub.addEventListener('click', () => go(ta.value)); ta.addEventListener('paste', () => setTimeout(() => go(ta.value), 50));
+    r.append(ib, ub); c.append(ta, r, msg);
+    if (ai.titel || ai.beschreibung) {
+      if (ai.zustand) c.append(e('div', 'pc-ok', '🔎 Zustand: ' + ai.zustand + (ai.maengel ? ' · Mängel: ' + ai.maengel : '')));
+      [['TITEL', ai.titel], ['BESCHREIBUNG', ai.beschreibung]].forEach(([k, v]) => { if (!v) return; c.append(e('div', 'pc-lbl', k)); c.append(e('pre', '', v));
+        const b = e('button', 'pc-go', '📋 ' + k.charAt(0) + k.slice(1).toLowerCase() + ' kopieren'); b.type = 'button';
+        b.addEventListener('click', async () => { try { await navigator.clipboard.writeText(v); } catch (x) { const a = document.createElement('textarea'); a.value = v; document.body.append(a); a.select(); document.execCommand('copy'); a.remove(); } b.textContent = '✓ Kopiert'; setTimeout(() => { b.textContent = '📋 ' + k.charAt(0) + k.slice(1).toLowerCase() + ' kopieren'; }, 2000); }); c.append(b); });
+    }
+    return c;
+  }
+
   function merken() { if (!S.art && !S.name) return; const H = lj('pc-hist6', []); const er = S.ergebnis || {};
     H.unshift({name: S.name || (ARTEN[S.art] || ARTEN.sonst).l, zustand: S.zustand, preis: er.pr || 0, p: er.p || '', d: er.d || '', f: (S.fotos[0] || {}).klein || '', z: Date.now()}); ls('pc-hist6', H.slice(0, 30)); }
   function historie() { const H = lj('pc-hist6', []); if (!H.length) return; const c = e('section', 'pc-c'); c.append(e('div', 'm', '🕘 Zuletzt geprüft')); const l = e('div', 'pc-hist');
@@ -227,7 +274,7 @@
     try { const o = {modelTier: 'complex'}; try { const lim = await sample.limits(); if (lim && lim.images) o.images = S.fotos.slice(0, Math.min(lim.images, 4)).map(f => f.blob); } catch (x) {}
       const r = await sample(prompt, o); let j = null; try { j = JSON.parse((r.text.match(/\{[\s\S]*\}/) || [''])[0]); } catch (x) {}
       box.replaceChildren(); if (!j) { box.append(e('div', 'pc-warn', 'Claude konnte nicht sicher antworten – bitte über ChatGPT schicken.')); laeuft = false; return; }
-      if (j.artikel && !S.name) S.name = j.artikel; (j.preise || []).forEach(x => { if (P[x.plattform] && x.preis) S.preise[x.plattform] = {p: String(x.preis), d: /^\d{4}-\d\d-\d\d$/.test(x.datum || '') ? x.datum : ''}; }); speichern();
+      if (j.artikel && !S.name) S.name = j.artikel; S.ai = {titel: j.titel || '', beschreibung: j.beschreibung || '', zustand: j.zustand || '', maengel: (j.maengel || []).join(', ')}; if (j.zustand && !S.zustand) S.zustand = j.zustand; (j.preise || []).forEach(x => { if (P[x.plattform] && x.preis) S.preise[x.plattform] = {p: String(x.preis), d: /^\d{4}-\d\d-\d\d$/.test(x.datum || '') ? x.datum : ''}; }); speichern();
       box.append(e('div', 'pc-h', '🤖 ' + (j.artikel || 'Ergebnis')));
       if ((j.maengel || []).length) box.append(e('div', 'm', '🔎 ' + j.maengel.join(' · ')));
       (j.preise || []).forEach(x => { if (!x.link || !/^https:\/\//.test(x.link)) return; const a = e('a', '', '↗ ' + ((P[x.plattform] || {}).l || x.plattform) + ' · ' + eur(x.preis) + ' · ' + datK(x.datum)); a.href = x.link; a.target = '_blank'; a.rel = 'noopener'; a.style.color = '#93c5fd'; box.append(a); });
