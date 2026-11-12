@@ -19,7 +19,7 @@
 .pc .steps button.ok{color:var(--ok)}
 .pc .steps button.an{color:#fff}
 .pc .box{background:var(--card);border:2px solid var(--line);border-radius:26px;padding:18px;display:grid;gap:14px}
-.pc h2{margin:0;font-size:1.6rem;line-height:1.15;font-weight:900;letter-spacing:-.02em}
+.pc h2{margin:0!important;font-size:1.6rem!important;line-height:1.15!important;font-weight:900!important;letter-spacing:-.02em;color:#fff!important}
 .pc .sub{color:var(--mut);font-size:.95rem;margin-top:-8px}
 .pc .cam{display:grid;place-items:center;gap:6px;min-height:150px;border-radius:24px;border:3px dashed var(--lime);background:radial-gradient(120% 120% at 50% 0%,rgba(198,255,61,.18),transparent 60%),var(--card2);cursor:pointer;text-align:center;padding:16px;font-weight:900;font-size:1.25rem}
 .pc .cam input{display:none}
