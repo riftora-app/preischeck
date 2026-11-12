@@ -1,4 +1,5 @@
-/* Preis-Check v8 – ganz einfach: Foto → ChatGPT → Antwort einfügen → Titel, Beschreibung, letzter Verkauf, Preisempfehlung zum Kopieren.
+/* © 2026 NOXRIFT – Manuel. Alle Rechte vorbehalten. Nutzung nur für das NoxRift-Team.
+   Preis-Check v10 – ganz einfach: Foto → ChatGPT → Antwort einfügen → Titel, Beschreibung, letzter Verkauf, Preisempfehlung zum Kopieren.
    Eigene App (GitHub) und Bereich in NoxRift – dieselbe Datei. */
 (function () {
   const css = `
@@ -89,6 +90,7 @@
     /* 3 · Ergebnis zum Kopieren */
     if (E) root.append(ergebnis());
     const nb = e('button', 'pc-go grau', '🆕 Nächster Artikel'); nb.type = 'button'; nb.addEventListener('click', () => { fotos = []; E = null; ls('pc-e8', null); bau(); window.scrollTo && window.scrollTo({top: 0, behavior: 'smooth'}); }); root.append(nb);
+    root.append(e('div', 'pc-m', '© 2026 NOXRIFT · Alle Rechte vorbehalten · nur für das NoxRift-Team'));
     if (window.dash) { const a = e('a', 'pc-go grau', '📲 App fürs Handy'); a.href = 'https://riftora-app.github.io/preischeck/'; a.target = '_blank'; a.rel = 'noopener'; root.append(a); }
   }
 
@@ -120,5 +122,14 @@
     window.open('https://chatgpt.com/', '_blank', 'noopener');
   }
 
-  bau();
+  /* Zugang nur fürs Team: Code wird nur als Prüfsumme gespeichert */
+  const HASH = 'abb413b3292845daf4d0c821a9bfe9ef3df947cc24db886d46813b12d6bb2035';
+  async function pruef(c) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('noxrift:' + c.trim())); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('') === HASH; }
+  function sperre() {
+    root.replaceChildren(e('div', 'pc-titel', '🔒 Preis-Check')); const c = e('section', 'pc-c'); c.append(e('div', '', 'Nur für das NoxRift-Team. Bitte Zugangscode eingeben.'));
+    const i = e('input'); i.type = 'password'; i.inputMode = 'numeric'; i.autocomplete = 'off'; i.placeholder = 'Zugangscode'; i.style.cssText = 'font:inherit;padding:12px 14px;border-radius:14px;border:1px solid var(--pl);background:var(--pb);color:var(--pt)';
+    const b = e('button', 'pc-go', 'Öffnen'); b.type = 'button'; const m = e('div');
+    const los = async () => { if (await pruef(i.value)) { ls('pc-zugang', HASH); bau(); } else m.replaceChildren(e('div', 'pc-warn', 'Code falsch.')); };
+    b.addEventListener('click', los); i.addEventListener('keydown', ev => { if (ev.key === 'Enter') los(); }); c.append(i, b, m); root.append(c); }
+  if (window.dash || lj('pc-zugang', '') === HASH) bau(); else sperre();
 })();
