@@ -1,5 +1,5 @@
 /* © 2026 NOXRIFT – Manuel. Alle Rechte vorbehalten. Nutzung nur für das NoxRift-Team.
-   Hustle-Radar v17 – Runde 2 (Verhandeln, Käufer-Antworten, Ladenhüter, Bündel …), Runde 1 (Fotos bleiben, Median-Preise, Gewinnrechner, Verlauf mit Status & Statistik …), Profi-Design, neues Logo, alles vorausgewählt (änderbar), Arbeitsmodus für NoxRift-Konten,
+   Hustle-Radar v18 – Runde 3 (Hell/Dunkel, große Schrift, Team-Namen, Wochenziel, LEGO & Figuren, Backup, Wischen …), Runde 2 (Verhandeln, Käufer-Antworten, Ladenhüter, Bündel …), Runde 1 (Fotos bleiben, Median-Preise, Gewinnrechner, Verlauf mit Status & Statistik …), Profi-Design, neues Logo, alles vorausgewählt (änderbar), Arbeitsmodus für NoxRift-Konten,
    neue Sammel-Kategorien: Magic, Star Wars Unlimited, Topps/Force Attax, Panini/Topps-Sticker & Alben.
    Eigene App (GitHub) und Bereich in NoxRift – dieselbe Datei. */
 (function () {
@@ -100,7 +100,15 @@
 .pc .kz b{display:block;font-size:1.1rem}.pc .kz span{font-size:.7rem;color:var(--mut)}
 .pc .stat{margin-top:4px;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:2px 9px;font-size:.72rem;font-weight:700;cursor:pointer}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;background:#c6ff3d;color:#0b0d14;font:700 15px system-ui,sans-serif;padding:10px 18px;border-radius:999px;transition:.25s;z-index:9999;pointer-events:none}
-.toast.an{opacity:1;transform:translate(-50%,0)}`;
+.toast.an{opacity:1;transform:translate(-50%,0)}
+.pc.hell{--bg:#f5f6fa;--s1:#ffffff;--s2:#eef0f6;--line:#d9dde8;--txt:#11131a;--mut:#5b6377;--acc:#4f7f00;--cyan:#0a7f8f;--ok:#0f9d63}
+.pc.hell .go{color:#fff}.pc.hell .go.leise{color:var(--txt)}.pc.hell .badge{color:#fff}.pc.hell .box{box-shadow:0 6px 20px rgba(20,30,60,.08)}
+.pc.gross{font-size:18px}.pc.gross .go{font-size:1.12rem}
+.pc .box{animation:pcin .22s ease-out}@keyframes pcin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.pc .box{animation:none}}
+.pc .ziel{height:8px;border-radius:9px;background:var(--line);overflow:hidden}.pc .ziel i{display:block;height:100%;background:linear-gradient(90deg,var(--vio),var(--pink))}
+.pc .opt{display:flex;gap:6px;justify-content:space-between;align-items:center;flex-wrap:wrap}.pc .opt>div{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.konf{position:fixed;font-size:26px;pointer-events:none;z-index:9999;animation:konf 1.1s ease-out forwards}@keyframes konf{to{transform:translate(var(--x),var(--y)) rotate(360deg);opacity:0}}`;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
   const e = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
   const btn = (c, x, fn) => { const b = e('button', c, x); b.type = 'button'; if (fn) b.addEventListener('click', fn); return b; };
@@ -175,17 +183,29 @@
       fotos: 'Gerät an (Bildschirm läuft) · vorne/hinten · Seriennummer · Zubehör',
       checks: [['ovp', 'Neu, originalverpackt', 0, 'originalverpackt'], ['kratz1', 'Leichte Kratzer, alles geht', 3, 'leichte Gebrauchsspuren'], ['kratz2', 'Deutliche Kratzer/Dellen', 4, 'deutliche Gebrauchsspuren'], ['defekt', 'Teilweise kaputt / Akku schwach', 4, 'Akku schwach bzw. Teildefekt']],
       extra: ['getestet, funktioniert', 'Zubehör komplett', 'Rechnung vorhanden'], schutz: ['Seriennummer vor dem Versand fotografieren.', 'Konten (Apple-ID, Google, Konsole) vorher abmelden und zurücksetzen.']},
+    lego: {l: 'LEGO', e: '🧱', skala: VS, start: 2, plat: ['ebay', 'kleinanzeigen', 'vinted'],
+      fotos: 'Aufgebautes Set · Karton vorne/hinten · Minifiguren nah · Anleitung',
+      checks: [['ovp', 'Neu, Karton ungeöffnet', 0, 'neu und versiegelt'], ['komplett', 'Gebraucht, 100 % vollständig', 2, 'vollständig'], ['teile', 'Einzelne Teile fehlen', 3, 'einzelne Teile fehlen'], ['figur', 'Minifiguren fehlen', 4, 'Minifiguren fehlen'], ['vergilbt', 'Teile vergilbt oder bekritzelt', 4, 'Teile vergilbt']],
+      extra: ['mit Anleitung', 'mit Karton', 'alle Minifiguren', 'Set-Nummer bekannt'],
+      schutz: ['Set-Nummer (4–6 Ziffern) in den Titel – danach suchen Sammler.', '„Vollständig“ nur schreiben, wenn wirklich nachgezählt.'],
+      tipps: ['Versiegelte Sets und seltene Minifiguren bringen am meisten – Figuren einzeln verkaufen kann sich lohnen.', 'Gemischte Steine als Kilo-Paket auf Kleinanzeigen.']},
+    figur: {l: 'Figuren & Funko', e: '🧸', skala: VS, start: 2, plat: ['ebay', 'vinted', 'kleinanzeigen'],
+      fotos: 'Figur von allen Seiten · Box-Ecken nah · Nummer auf der Box',
+      checks: [['ovp', 'Neu in unbeschädigter Box', 0, 'neu in OVP'], ['box1', 'Box mit kleinen Knicken', 2, 'Box mit leichten Knicken'], ['ohne', 'Ohne Box', 3, 'ohne Originalverpackung'], ['defekt', 'Farbe ab oder Teil abgebrochen', 4, 'kleiner Defekt']],
+      extra: ['Limited/Exclusive-Sticker', 'mit Schutzhülle', 'Nummer bekannt'],
+      schutz: ['Fälschungen: Druck und Schrift auf der Box mit Originalfotos vergleichen.', 'Boxen in Schutzhülle und stabilem Karton versenden.']},
     sonst: {l: 'Sonstiges', e: '📦', skala: VS, start: 2, plat: ['vinted', 'ebay', 'kleinanzeigen'], fotos: 'Gesamt · Details · Mängel nah',
       checks: [['ovp', 'Neu, originalverpackt', 0, 'originalverpackt'], ['leicht', 'Leichte Gebrauchsspuren', 3, 'leichte Gebrauchsspuren'], ['deutlich', 'Deutliche Spuren / Teildefekt', 4, 'deutliche Gebrauchsspuren']],
       extra: ['funktioniert', 'vollständig', 'OVP'], schutz: []}
   };
   const VERSAND = {tcg: 'Karte in Hülle + Toploader, zwischen Pappe. Günstig als Brief – ab ca. 25 € mit Sendungsverfolgung.', sticker: 'Sticker in Hülle + Pappe als Brief. Alben gut gepolstert als Päckchen.', spiel: 'In Luftpolster-Umschlag oder Karton, mit Sendungsverfolgung.', schuhe: 'Im Schuhkarton, dann in einen Versandkarton – als Paket.', kleidung: 'Gefaltet in einen Versandbeutel, meist reicht ein Päckchen.', schmuck: 'Im Schmuckkästchen, gut gepolstert. Ab 50 € versichert.', technik: 'Gut gepolstert im Karton, versichert und mit Sendungsverfolgung.', sonst: 'Je nach Größe Päckchen oder Paket, gut gepolstert.'};
-  VERSAND.topps = VERSAND.tcg;
+  VERSAND.topps = VERSAND.tcg; VERSAND.lego = 'Teile in Beuteln, gut gepolstert als Paket.'; VERSAND.figur = 'Box in Schutzhülle, stabiler Karton.';
+  const SAISON = ['Januar: Winterjacken und Fitness-Sachen sind jetzt gefragt.', 'Februar: Winterkleidung noch schnell verkaufen, bevor der Frühling kommt.', 'März: Frühjahrsputz – Sneaker und Übergangsjacken einstellen.', 'April: Sneaker, Fahrrad- und Gartensachen laufen an.', 'Mai: Sommerkleidung jetzt einstellen, nicht erst im Juli.', 'Juni: Bei Fußball-Turnieren sind Trikots, Sticker und Alben gefragt.', 'Juli: Ferienzeit – viele Käufer sind unterwegs, Preise eher fair setzen.', 'August: Schulstart – Technik, Rucksäcke und Taschenrechner einstellen.', 'September: Herbstjacken und neue Spiele sind jetzt gefragt.', 'Oktober: Weihnachtsgeschäft vorbereiten – Spiele, Sammelkarten und LEGO jetzt einstellen.', 'November: Black Friday und Weihnachten – Spiele, Technik, LEGO und Sammelkarten sind gefragt.', 'Dezember: Bis ca. 15.12. einstellen, damit es vor Weihnachten ankommt.'];
   const ANTWORT = [['👋 Noch da?', 'Hi! Ja, ist noch da 😊 Du kannst direkt kaufen, ich verschicke schnell.'], ['🔒 Preis fix', 'Hi! Der Preis ist schon knapp kalkuliert, weiter runter geht leider nicht. Danke für dein Verständnis!'], ['🧺 Bündel', 'Wenn du noch etwas aus meinem Profil dazu nimmst, mache ich dir gern einen Bündelpreis 🙂'], ['📦 Versand', 'Ich verschicke innerhalb von 1–2 Werktagen, gut verpackt und mit Sendungsverfolgung.'], ['📸 Mehr Fotos', 'Klar, ich schicke dir gleich noch mehr Fotos von allen Seiten.'], ['🙏 Danke', 'Danke für deinen Kauf! Das Paket geht schnell raus. Über eine Bewertung freue ich mich 🙏']];
   const SCHUTZ_ALLE = ['Nur über die Plattform bezahlen lassen – nie PayPal „Freunde“, nie Links oder Codes von Käufern anklicken.', 'Verpacken kurz filmen (Artikel → Paket → Etikett) – Beweis gegen „Paket war leer“.'];
 
   /* Automatische Erkennung aus dem Namen (alles bleibt änderbar) */
-  const ERKENNUNG = [
+  const ERKENNUNG = [[/\blego\b/i, 'lego'], [/funko|amiibo|actionfigur|sammelfigur/i, 'figur'],
     [/force attax|match attax|topps (chrome|star wars|now)|refractor|card trader|widevision/i, 'topps'],
     [/panini|sticker|stickeralbum|sammelalbum|\b(em|wm)\s?(19|20)\d\d|euro 20\d\d/i, 'sticker'],
     [/star wars unlimited|\bswu\b/i, 'tcg', 'swu'], [/magic|\bmtg\b|planeswalker/i, 'tcg', 'magic'], [/yu-?gi-?oh/i, 'tcg', 'yugioh'], [/lorcana/i, 'tcg', 'lorcana'], [/one piece card|op0\d/i, 'tcg', 'onepiece'],
@@ -200,7 +220,7 @@
   const neu = () => ({id: Date.now(), kat: '', spiel: '', checks: [], extra: [], name: '', maengel: '', preise: {}, bild: '', auto: true, ek: '', versand: '', menge: 1, tempo: 'max', status: 'geprueft', vk: '', groesse: '', vb: false, schmerz: '', check: [], seit: 0, vt: 0});
   let S = Object.assign(neu(), lj('pc-s15', {})), fotos = [], schritt = lj('pc-step', 1), ansicht = 'check', modus = lj('pc-modus2', 'arbeit');
   const arbeit = () => modus === 'arbeit';
-  let fokus = false;
+  let fokus = false, wer = lj('pc-wer', ''), hell = lj('pc-hell', false), gross = lj('pc-gross', false);
   const sp = () => { ls('pc-s15', S); ls('pc-step', schritt); };
   const root = document.getElementById('pc-root'); if (!root) return; root.className = 'pc';
 
@@ -234,7 +254,8 @@
   async function fotoSpeichern() { try { const d = await idb(); d.transaction('fotos', 'readwrite').objectStore('fotos').put(fotos.map(f => f.blob), String(S.id)); } catch (x) {} }
   async function fotoLaden(id) { try { const d = await idb(); return await new Promise(ok => { const r = d.transaction('fotos').objectStore('fotos').get(String(id)); r.onsuccess = () => ok((r.result || []).map(b => ({blob: b, url: URL.createObjectURL(b)}))); r.onerror = () => ok([]); }); } catch (x) { return []; } }
   async function fotoLoeschen(id) { try { const d = await idb(); d.transaction('fotos', 'readwrite').objectStore('fotos').delete(String(id)); } catch (x) {} }
-  function toast(t) { let el = document.getElementById('pc-toast'); if (!el) { el = e('div', 'toast'); el.id = 'pc-toast'; document.body.append(el); } el.textContent = t; el.classList.add('an'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('an'), 1800); try { navigator.vibrate && navigator.vibrate(15); } catch (x) {} }
+  function konfetti() { if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return; for (let i = 0; i < 14; i++) { const k = e('div', 'konf', ['🎉', '💸', '✨', '🔥'][i % 4]); k.style.left = '50%'; k.style.top = '55%'; k.style.setProperty('--x', (Math.random() * 300 - 150) + 'px'); k.style.setProperty('--y', (-Math.random() * 320 - 40) + 'px'); document.body.append(k); setTimeout(() => k.remove(), 1200); } }
+  function toast(t) { let el = document.getElementById('pc-toast'); if (!el) { el = e('div', 'toast'); el.id = 'pc-toast'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); document.body.append(el); } el.textContent = t; el.classList.add('an'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('an'), 1800); try { navigator.vibrate && navigator.vibrate(15); } catch (x) {} }
   async function verkleinern(f, max, qual) { try { const bm = await createImageBitmap(f); const s = Math.min(1, max / Math.max(bm.width, bm.height)); const c = document.createElement('canvas'); c.width = Math.round(bm.width * s); c.height = Math.round(bm.height * s); c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height);
     const blob = await new Promise(r => c.toBlob(b => r(b || f), 'image/jpeg', qual)); return {blob, url: URL.createObjectURL(blob), data: max <= 200 ? c.toDataURL('image/jpeg', qual) : ''}; } catch (x) { return {blob: f, url: URL.createObjectURL(f), data: ''}; } }
   async function kopiere(t) { try { await navigator.clipboard.writeText(t); } catch (x) { const a = document.createElement('textarea'); a.value = t; document.body.append(a); a.select(); document.execCommand('copy'); a.remove(); } }
@@ -242,13 +263,15 @@
 
   const H = () => lj('pc-verlauf', []);
   function merken() { if (!S.name.trim()) return; const b = bester(); const L = H(); const alt = L.find(x => x.id === S.id) || {}; const R = L.filter(x => x.id !== S.id);
-    R.unshift({id: S.id, t: alt.t || Date.now(), job: arbeit(), s: JSON.parse(JSON.stringify(S)), titel: titel(), preis: b ? b.x.start : 0, plat: S.plat || (b ? b.id : ''), status: S.status || 'geprueft', vk: S.vk || ''});
+    R.unshift({id: S.id, t: alt.t || Date.now(), job: arbeit(), s: JSON.parse(JSON.stringify(S)), titel: titel(), preis: b ? b.x.start : 0, plat: S.plat || (b ? b.id : ''), status: S.status || 'geprueft', vk: S.vk || '', wer: alt.wer || wer});
     let n = Math.min(R.length, 80); while (n > 0 && !ls('pc-verlauf', R.slice(0, n))) n--; }
   function setze(id, feld, wert) { const L = H(); const x = L.find(y => y.id === id); if (!x) return; x[feld] = wert; x.s[feld] = wert; ls('pc-verlauf', L); }
   function kopf() {
     const t = e('div', 'top'); const br = e('div', 'brand'); br.append(svg(LOGO)); const nm = e('div'); nm.append(e('b', '', 'Hustle-Radar'), e('small', '', 'BY NOXRIFT')); br.append(nm); t.append(br);
     t.append(btn('pill', ansicht === 'verlauf' ? '← Zurück' : 'Verlauf', () => { ansicht = ansicht === 'verlauf' ? 'check' : 'verlauf'; bau(); }));
     root.append(t);
+    const op = e('div', 'opt'); const wl = e('div'); wl.append(e('span', 'm', 'Ich bin:')); ['Manu', 'Melly', 'Amelie'].forEach(n => { const x = btn('pill', n, () => { wer = wer === n ? '' : n; ls('pc-wer', wer); bau(); }); x.style.padding = '5px 11px'; x.setAttribute('aria-pressed', String(wer === n)); if (wer === n) { x.style.borderColor = 'var(--acc)'; x.style.background = 'rgba(198,255,61,.14)'; } wl.append(x); });
+    const ol = e('div'); const hb = btn('pill', hell ? '🌙' : '☀️', () => { hell = !hell; ls('pc-hell', hell); bau(); }); hb.title = hb.ariaLabel = 'Hell oder dunkel'; const gb = btn('pill', gross ? 'A−' : 'A+', () => { gross = !gross; ls('pc-gross', gross); bau(); }); gb.title = gb.ariaLabel = 'Schrift größer oder kleiner'; ol.append(hb, gb); op.append(wl, ol); root.append(op);
     const mo = e('div', 'modus'); [['arbeit', 'Arbeit für NoxRift'], ['privat', 'Privat']].forEach(([k, l]) => { const b = btn('', null, () => { modus = k; ls('pc-modus2', k); bau(); }); b.append(e('span', 'dot'), l); b.setAttribute('aria-pressed', String(modus === k)); mo.append(b); }); root.append(mo);
   }
   function leiste() {
@@ -275,7 +298,7 @@
     ni.addEventListener('keydown', ev => { if (ev.key === 'Enter') ni.blur(); });
     if (fokus) { fokus = false; setTimeout(() => ni.focus(), 50); }
     const dop = S.name.trim() && H().find(x => x.id !== S.id && (x.s.name || '').trim().toLowerCase() === S.name.trim().toLowerCase());
-    if (dop) b.append(e('div', 'arb', '👀 Schon am ' + datum(dop.t) + ' geprüft' + (dop.preis ? ' – damals ' + eur(dop.preis) : '') + '. Im Verlauf mit ⧉ kopieren.'));
+    if (dop) { const dw = e('div', 'arb'); dw.append('👀 Schon am ' + datum(dop.t) + ' geprüft' + (dop.preis ? ' – damals ' + eur(dop.preis) : '') + '. '); if (Object.keys(dop.s.preise || {}).length) dw.append(btn('stat', 'Preise von damals übernehmen', () => { S.preise = Object.assign({}, dop.s.preise); sp(); toast('Preise übernommen'); bau(); })); b.append(dw); }
     const kl = e('div', 'lbl', 'Art'); if (S.kat && S.auto) kl.append(e('em', '', 'automatisch erkannt')); b.append(kl);
     const k = e('div', 'kats'); Object.entries(KAT).forEach(([id, K]) => { const x = btn(); x.setAttribute('aria-pressed', String(S.kat === id)); x.append(e('span', 'e', K.e), e('span', '', K.l)); x.addEventListener('click', () => { if (S.kat !== id) { S.checks = []; S.extra = []; } S.kat = id; S.auto = false; if (id === 'tcg' && !S.spiel) S.spiel = 'pokemon'; sp(); bau(); }); k.append(x); }); b.append(k);
     const K = KAT[S.kat];
@@ -291,6 +314,8 @@
       const d = e('details'); d.append(e('summary', '', '🛡️ So zieht dich keiner ab')); const ul = e('ul'); K.schutz.concat(SCHUTZ_ALLE).forEach(x => ul.append(e('li', '', x))); d.append(ul); b.append(d);
     }
     b.append(weiter('Weiter zum Vergleich →', 2, !(S.kat && S.name.trim())));
+    if (!S.kat) { const sz2 = e('div', 'tipp'); sz2.append(e('b', '', '📅 Gerade gefragt'), e('div', '', SAISON[new Date().getMonth()])); b.append(sz2); }
+    if (S.name || fotos.length) b.append(btn('go leise', '↺ Neu anfangen', () => { if (S.name.trim()) merken(); S = neu(); fotos = []; fokus = true; sp(); bau(); }));
     root.append(b);
   }
   function s2() {
@@ -345,7 +370,7 @@
     const nx = e('div', 'zwei'); nx.append(btn('go leise', '+ Nächster Artikel', () => naechst(false)), btn('go leise', '+ Gleiche Art nochmal', () => naechst(true))); b.append(nx);
     root.append(b);
   }
-  async function schicken() { merken(); const best = bester(); const txt = ['📦 NOXRIFT-ANZEIGE', '', 'TITEL: ' + titel(), '', 'BESCHREIBUNG:', beschreibung(), '', 'PREIS: ' + (best ? eur(best.x.start) + ' auf ' + P[best.id].l + ' (nie unter ' + eur(best.x.min) + ')' : '–')].join('\n');
+  async function schicken() { merken(); const best = bester(); const txt = ['📦 NOXRIFT-ANZEIGE' + (wer ? ' von ' + wer : '') + (fotos.length ? ' · ' + fotos.length + ' Fotos' : ''), '', 'TITEL: ' + titel(), '', 'BESCHREIBUNG:', beschreibung(), '', 'PREIS: ' + (best ? eur(best.x.start) + ' auf ' + P[best.id].l + ' (nie unter ' + eur(best.x.min) + ')' : '–')].join('\n');
     await kopiere(txt); const files = fotos.map((f, i) => new File([f.blob], 'noxrift-' + (i + 1) + '.jpg', {type: 'image/jpeg'}));
     try { if (files.length && navigator.canShare && navigator.canShare({files})) { await navigator.share({files, text: txt}); return; } if (navigator.share) { await navigator.share({text: txt}); return; } } catch (x) { if (x && x.name === 'AbortError') return; }
     window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank', 'noopener'); }
@@ -355,11 +380,15 @@
   function verlauf() {
     const b = e('section', 'box'); b.append(e('h2', '', 'Verlauf'), e('div', 'sub', 'Antippen öffnet den Artikel wieder. Gespeichert auf diesem Gerät.'));
     const A = H(); const vk = A.filter(x => x.status === 'verkauft'); const ums = vk.reduce((s, x) => s + (zahl(x.vk) || x.preis || 0), 0);
+    const top = () => { const c = {}; A.filter(x => x.plat && x.status !== 'geprueft').forEach(x => { c[x.plat] = (c[x.plat] || 0) + 1; }); const k = Object.keys(c).sort((a, z) => c[z] - c[a])[0]; return k ? P[k].l : '–'; };
+    const dd = vk.filter(x => x.s.vt && x.s.seit).map(x => (x.s.vt - x.s.seit) / 864e5); const dauer = dd.length ? (Math.round(dd.reduce((s, x) => s + x, 0) / dd.length * 10) / 10).toLocaleString('de-DE') + ' Tage' : '–';
     const gew = ums - vk.reduce((s, x) => s + zahl(x.s.ek) + zahl(x.s.versand), 0);
     const abw = vk.filter(x => zahl(x.vk) && x.preis).map(x => (zahl(x.vk) - x.preis) / x.preis * 100);
-    const kz = e('div', 'kz'); [['Geprüft', A.length], ['Eingestellt', A.filter(x => x.status === 'eingestellt').length], ['Verkauft', vk.length], ['Umsatz', eur(ums)], ['Gewinn', eur(gew)], ['Verkauft (7 Tage)', vk.filter(x => x.s.vt && Date.now() - x.s.vt < 7 * 864e5).length], ['Ladenhüter', A.filter(liegt).length], ['Ø vs. Empfehlung', abw.length ? (abw.reduce((s, x) => s + x, 0) / abw.length >= 0 ? '+' : '') + Math.round(abw.reduce((s, x) => s + x, 0) / abw.length) + ' %' : '–']].forEach(([l, v]) => { const d = e('div'); d.append(e('b', '', String(v)), e('span', '', l)); kz.append(d); }); b.append(kz);
+    const kz = e('div', 'kz'); [['Geprüft', A.length], ['Eingestellt', A.filter(x => x.status === 'eingestellt').length], ['Verkauft', vk.length], ['Umsatz', eur(ums)], ['Gewinn', eur(gew)], ['Verkauft (7 Tage)', vk.filter(x => x.s.vt && Date.now() - x.s.vt < 7 * 864e5).length], ['Ladenhüter', A.filter(liegt).length], ['Top-Plattform', top()], ['Ø Verkaufspreis', vk.length ? eur(ums / vk.length) : '–'], ['Ø Verkaufsdauer', dauer], ['Ø vs. Empfehlung', abw.length ? (abw.reduce((s, x) => s + x, 0) / abw.length >= 0 ? '+' : '') + Math.round(abw.reduce((s, x) => s + x, 0) / abw.length) + ' %' : '–']].forEach(([l, v]) => { const d = e('div'); d.append(e('b', '', String(v)), e('span', '', l)); kz.append(d); }); b.append(kz);
+    const wo = vk.filter(x => x.s.vt && Date.now() - x.s.vt < 7 * 864e5).reduce((s, x) => s + (zahl(x.vk) || x.preis || 0), 0); const zl = zahl(lj('pc-ziel', '')) || 100;
+    const zf = e('div', 'feld'); const zk = e('div', 'lbl', '🎯 Wochenziel (7 Tage)'); zk.append(btn('stat', eur(wo) + ' von ' + eur(zl) + ' ✎', () => { const v = prompt('Wochenziel in €', String(zl).replace('.', ',')); if (v && zahl(v)) { ls('pc-ziel', String(zahl(v))); bau(); } })); const bar = e('div', 'ziel'); const fi2 = e('i'); fi2.style.width = Math.min(100, wo / zl * 100) + '%'; bar.append(fi2); zf.append(zk, bar); if (wo >= zl) zf.append(e('div', 'gew', '🔥 Wochenziel geschafft!')); b.append(zf);
     const si = e('input'); si.placeholder = '🔎 Suchen …'; si.value = suche; si.addEventListener('input', () => { suche = si.value; zeige(); }); b.append(si);
-    const fg = e('div', 'seg'); [['alle', 'Alle'], ['geprueft', 'Geprüft'], ['eingestellt', 'Eingestellt'], ['verkauft', 'Verkauft'], ['alt', '⏰ Ladenhüter'], ['job', 'NoxRift'], ['privat', 'Privat']].forEach(([k, l]) => { const x = btn('', l, () => { filt = k; bau(); }); x.setAttribute('aria-pressed', String(filt === k)); fg.append(x); }); b.append(fg);
+    const fg = e('div', 'seg'); [['alle', 'Alle'], ['geprueft', 'Geprüft'], ['eingestellt', 'Eingestellt'], ['verkauft', 'Verkauft'], ['alt', '⏰ Ladenhüter'], ['job', 'NoxRift'], ['privat', 'Privat'], ['Manu', '👤 Manu'], ['Melly', '👤 Melly'], ['Amelie', '👤 Amelie']].forEach(([k, l]) => { const x = btn('', l, () => { filt = k; bau(); }); x.setAttribute('aria-pressed', String(filt === k)); fg.append(x); }); b.append(fg);
     const so = e('div', 'seg'); [['neu', 'Neueste'], ['alt', 'Älteste'], ['preis', 'Höchster Preis']].forEach(([k, l]) => { const x = btn('', '↕ ' + l, () => { sortier = k; bau(); }); x.setAttribute('aria-pressed', String(sortier === k)); so.append(x); }); b.append(so);
     b.append(btn('go leise', buendel ? '✕ Bündel beenden' : '🧺 Bündel schnüren (mehrere zusammen verkaufen)', () => { buendel = buendel ? null : new Set(); bau(); }));
     const kb = e('div'); b.append(kb);
@@ -367,14 +396,15 @@
     function kasse() { kb.replaceChildren(); if (!buendel) return; const W = H().filter(x => buendel.has(x.id)); if (!W.length) { kb.append(e('div', 'arb', 'Tippe die Artikel an, die zusammen weg sollen.')); return; } const su = W.reduce((s, x) => s + (x.preis || 0), 0); const bp = runter(su * 0.85);
       const f = e('div', 'feld'); f.append(e('div', 'lbl', W.length + ' Artikel · einzeln ' + eur(su)), e('div', 'v', 'Bündelpreis: ' + eur(bp) + ' (−15 %)'), kBtn('Bündel-Text kopieren', '🧺 Bündel-Angebot:\n' + W.map(x => '• ' + x.titel + (x.preis ? ' (' + eur(x.preis) + ')' : '')).join('\n') + '\n\nZusammen statt ' + eur(su) + ' nur ' + eur(bp) + '!')); kb.append(f); }
     function zeige() { l.replaceChildren(); const q = suche.toLowerCase();
-      const L = A.filter(x => (!q || (x.titel || x.s.name || '').toLowerCase().includes(q)) && (filt === 'alle' || (filt === 'job' ? x.job : filt === 'privat' ? !x.job : filt === 'alt' ? liegt(x) : (x.status || 'geprueft') === filt)));
+      const L = A.filter(x => (!q || (x.titel || x.s.name || '').toLowerCase().includes(q)) && (filt === 'alle' || (filt === 'job' ? x.job : filt === 'privat' ? !x.job : filt === 'alt' ? liegt(x) : /^[A-Z]/.test(filt) ? x.wer === filt : (x.status || 'geprueft') === filt)));
       if (sortier === 'alt') L.reverse(); else if (sortier === 'preis') L.sort((a, c) => (c.preis || 0) - (a.preis || 0));
       if (!L.length) l.append(e('div', 'm', A.length ? 'Nichts gefunden.' : 'Noch nichts geprüft.'));
       L.forEach(x => { const it = e('div', 'it'); if (buendel && buendel.has(x.id)) it.style.outline = '2px solid var(--acc)'; it.setAttribute('role', 'button'); it.tabIndex = 0; const im = x.s.bild ? Object.assign(e('img'), {src: x.s.bild, alt: ''}) : e('div', 'ph', (KAT[x.s.kat] || KAT.sonst).e);
-        const m = e('div'); m.style.minWidth = '0'; m.append(e('div', 't', x.titel || x.s.name), e('div', 'm', datum(x.t) + (x.job ? ' · NoxRift' : ' · Privat') + (x.plat ? ' · ' + P[x.plat].l : '')));
-        const st = btn('stat', STAT[x.status || 'geprueft'], ev => { ev.stopPropagation(); const n = {geprueft: 'eingestellt', eingestellt: 'verkauft', verkauft: 'geprueft'}[x.status || 'geprueft']; setze(x.id, 'status', n); if (n === 'eingestellt' && !x.s.seit) setze(x.id, 'seit', Date.now()); if (n === 'verkauft') { setze(x.id, 'vt', Date.now()); const v = prompt('Für wie viel verkauft? (€)', String(x.preis || '').replace('.', ',')); if (v) setze(x.id, 'vk', v); kopiere(ANTWORT[5][1]).then(() => toast('Verkauft ✓ – Danke-Nachricht kopiert')); } bau(); }); m.append(st);
+        const m = e('div'); m.style.minWidth = '0'; m.append(e('div', 't', x.titel || x.s.name), e('div', 'm', datum(x.t) + (x.job ? ' · NoxRift' : ' · Privat') + (x.plat ? ' · ' + P[x.plat].l : '') + (x.wer ? ' · ' + x.wer : '')));
+        const st = btn('stat', STAT[x.status || 'geprueft'], ev => { ev.stopPropagation(); const n = {geprueft: 'eingestellt', eingestellt: 'verkauft', verkauft: 'geprueft'}[x.status || 'geprueft']; setze(x.id, 'status', n); if (n === 'eingestellt' && !x.s.seit) setze(x.id, 'seit', Date.now()); if (n === 'verkauft') { setze(x.id, 'vt', Date.now()); const v = prompt('Für wie viel verkauft? (€)', String(x.preis || '').replace('.', ',')); if (v) setze(x.id, 'vk', v); konfetti(); kopiere(ANTWORT[5][1]).then(() => toast('Verkauft ✓ – Danke-Nachricht kopiert')); } bau(); }); m.append(st);
         if (x.status === 'eingestellt' && x.s.seit) { const tg = Math.floor((Date.now() - x.s.seit) / 864e5); m.append(e('div', 'm', '⏱ ' + (tg ? 'seit ' + tg + (tg > 1 ? ' Tagen' : ' Tag') : 'seit heute') + ' online'));
           if (tg >= 7 && x.preis) { const np = runter(x.preis * 0.9); m.append(btn('stat', '⏰ Preis auf ' + eur(np) + ' senken', async ev => { ev.stopPropagation(); setze(x.id, 'preis', np); setze(x.id, 'seit', Date.now()); await kopiere(String(np.toFixed(2)).replace('.', ',')); toast('Neuer Preis kopiert'); bau(); })); } }
+        if ((x.status || 'geprueft') === 'geprueft' && Date.now() - x.t > 3 * 864e5) m.append(e('div', 'm', '💤 seit ' + Math.floor((Date.now() - x.t) / 864e5) + ' Tagen nicht eingestellt'));
         const r = e('div'); r.style.textAlign = 'right'; r.append(e('div', 'p', x.status === 'verkauft' && x.vk ? eur(zahl(x.vk)) : x.preis ? eur(x.preis) : '–'));
         const dup = btn('del', '⧉', ev => { ev.stopPropagation(); S = Object.assign(neu(), JSON.parse(JSON.stringify(x.s)), {id: Date.now(), status: 'geprueft', vk: '', plat: '', seit: 0, vt: 0}); fotos = []; schritt = 1; ansicht = 'check'; sp(); bau(); toast('Kopie angelegt'); }); dup.title = 'Duplizieren';
         const del = btn('del', '🗑', ev => { ev.stopPropagation(); weg = x; ls('pc-verlauf', H().filter(y => y.id !== x.id)); bau(); }); del.title = 'Löschen'; r.append(dup, del);
@@ -384,6 +414,10 @@
     const k = e('div', 'zwei'); ['vinted', 'ebay', 'kleinanzeigen', 'cardmarket'].forEach(id => { const a = e('a', 'go leise', 'Meine ' + P[id].l + ' ↗'); a.href = P[id].meine; a.target = '_blank'; a.rel = 'noopener'; k.append(a); }); b.append(e('div', 'lbl', 'Konten'), k);
     b.append(btn('go leise', '⬇ Verlauf als Tabelle (CSV)', () => { const z = [['Datum', 'Titel', 'Status', 'Plattform', 'Empfehlung', 'Verkauft für', 'Modus']].concat(H().map(x => [datum(x.t), x.titel, STAT[x.status || 'geprueft'].slice(2), x.plat ? P[x.plat].l : '', String(x.preis || '').replace('.', ','), x.vk || '', x.job ? 'NoxRift' : 'Privat']));
       const csv = '﻿' + z.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); a.download = 'Hustle-Radar Verlauf.csv'; a.click(); toast('Tabelle gespeichert'); }));
+    const bk = e('div', 'zwei'); bk.append(btn('go leise', '💾 Backup speichern', () => { const daten = {app: 'hustle-radar', v: 1, verlauf: H(), sig: lj('pc-sig', ''), ziel: lj('pc-ziel', '')}; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(daten)], {type: 'application/json'})); a.download = 'Hustle-Radar Backup.json'; a.click(); toast('Backup gespeichert'); }));
+    const il = e('label', 'go leise', '📥 Backup laden'); il.style.cursor = 'pointer'; const ii = e('input'); ii.type = 'file'; ii.accept = '.json,application/json'; ii.style.display = 'none';
+    ii.addEventListener('change', async () => { try { const d = JSON.parse(await ii.files[0].text()); if (d.app !== 'hustle-radar' || !Array.isArray(d.verlauf)) throw 0; const L = H(); const ids = new Set(L.map(x => x.id)); const NL = L.concat(d.verlauf.filter(x => x && x.id && x.s && !ids.has(x.id))).sort((a, z) => z.t - a.t); ls('pc-verlauf', NL.slice(0, 200)); if (d.sig && !lj('pc-sig', '')) ls('pc-sig', d.sig); if (d.ziel && !lj('pc-ziel', '')) ls('pc-ziel', d.ziel); toast((NL.length - L.length) + ' Einträge übernommen'); bau(); } catch (x) { toast('Datei passt nicht'); } });
+    il.append(ii); bk.append(il); b.append(e('div', 'lbl', 'Handy ↔ PC abgleichen'), bk);
     root.append(b);
   }
   function datenschutz() {
@@ -399,11 +433,14 @@
     b.append(btn('go leise', '← Zurück', () => { ansicht = 'check'; bau(); })); root.append(b);
   }
 
+  function erinnerung() { const A = H(); const lh = A.filter(liegt).length; const ne = A.filter(x => (x.status || 'geprueft') === 'geprueft' && Date.now() - x.t > 3 * 864e5).length; if (!lh && !ne) return;
+    root.append(btn('go leise', '⏰ ' + [lh ? lh + ' Ladenhüter' : '', ne ? ne + ' noch nicht eingestellt' : ''].filter(Boolean).join(' · ') + ' → ansehen', () => { filt = lh ? 'alt' : 'geprueft'; ansicht = 'verlauf'; bau(); })); }
+  function neuig() { if (lj('pc-neu', '') === 'v18') return; ls('pc-neu', 'v18'); const d = e('div', 'tipp'); d.append(e('b', '', '✨ Neu in v18'), e('div', '', 'Hell/Dunkel ☀️, große Schrift A+, „Ich bin“-Auswahl, Wochenziel, LEGO & Figuren, Backup für Handy ↔ PC, Wischen zwischen den Schritten, Erinnerungen an Ladenhüter.'), btn('go leise', 'Alles klar', () => d.remove())); root.children[0] ? root.children[0].after(d) : root.append(d); }
   function bau() {
-    root.replaceChildren(); kopf();
+    root.replaceChildren(); root.className = 'pc' + (hell ? ' hell' : '') + (gross ? ' gross' : ''); if (!window.dash) document.body.style.background = hell ? '#f5f6fa' : ''; kopf();
     if (ansicht === 'verlauf') verlauf();
     else if (ansicht === 'datenschutz') datenschutz();
-    else { leiste(); [s1, s2, s3, s4][Math.min(Math.max(schritt, 1), 4) - 1](); }
+    else { erinnerung(); leiste(); [s1, s2, s3, s4][Math.min(Math.max(schritt, 1), 4) - 1](); }
     const fu = e('div', 'fuss', '© 2026 NOXRIFT · Alle Rechte vorbehalten · nur fürs NoxRift-Team · '); const dl = e('a', '', 'Datenschutz & Nutzung'); dl.href = '#'; dl.addEventListener('click', ev => { ev.preventDefault(); ansicht = 'datenschutz'; bau(); window.scrollTo && window.scrollTo({top: 0}); }); fu.append(dl); root.append(fu);
     if (window.dash) { const a = e('a', 'go leise', 'App fürs Handy öffnen ↗'); a.href = 'https://riftora-app.github.io/preischeck/'; a.target = '_blank'; a.rel = 'noopener'; root.append(a); }
   }
@@ -417,6 +454,9 @@
     const i = e('input'); i.type = 'password'; i.inputMode = 'numeric'; i.autocomplete = 'off'; i.placeholder = 'Zugangscode';
     const m = e('div'); const los = async () => { if (await pruef(i.value)) { ls('pc-zugang', HASH); bau(); } else m.replaceChildren(e('div', 'warn', 'Code falsch.')); };
     i.addEventListener('keydown', ev => { if (ev.key === 'Enter') los(); }); c.append(i, btn('go', 'Öffnen', los), m); root.append(c); }
+  let tx = null; root.addEventListener('touchstart', ev => { tx = /INPUT|TEXTAREA/.test(ev.target.tagName) ? null : [ev.touches[0].clientX, ev.touches[0].clientY]; }, {passive: true});
+  root.addEventListener('touchend', ev => { if (!tx || ansicht !== 'check') return; const dx = ev.changedTouches[0].clientX - tx[0], dy = ev.changedTouches[0].clientY - tx[1]; tx = null; if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6) return; const z = schritt + (dx < 0 ? 1 : -1); if (z < 1 || z > 4) return; schritt = z; if (z === 4) merken(); sp(); bau(); });
+  addEventListener('keydown', ev => { if (!(ev.ctrlKey || ev.metaKey) || !/^Arrow(Left|Right)$/.test(ev.key) || ansicht !== 'check' || !root.offsetParent || /INPUT|TEXTAREA/.test((document.activeElement || {}).tagName || '')) return; const z = schritt + (ev.key === 'ArrowRight' ? 1 : -1); if (z < 1 || z > 4) return; ev.preventDefault(); schritt = z; if (z === 4) merken(); sp(); bau(); });
   addEventListener('offline', () => toast('Offline – alles läuft weiter, Links brauchen Internet')); 
-  if (window.dash || lj('pc-zugang', '') === HASH) { bau(); fotoLaden(S.id).then(f => { if (f.length && !fotos.length) { fotos = f; bau(); } }); } else sperre();
+  if (window.dash || lj('pc-zugang', '') === HASH) { bau(); neuig(); fotoLaden(S.id).then(f => { if (f.length && !fotos.length) { fotos = f; bau(); } }); } else sperre();
 })();
