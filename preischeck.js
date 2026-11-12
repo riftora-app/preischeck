@@ -1,5 +1,5 @@
 /* © 2026 NOXRIFT – Manuel. Alle Rechte vorbehalten. Nutzung nur für das NoxRift-Team.
-   Hustle-Radar v15 – Profi-Design, neues Logo, alles vorausgewählt (änderbar), Arbeitsmodus für NoxRift-Konten,
+   Hustle-Radar v16 – Runde 1 (Fotos bleiben, Median-Preise, Gewinnrechner, Verlauf mit Status & Statistik …), Profi-Design, neues Logo, alles vorausgewählt (änderbar), Arbeitsmodus für NoxRift-Konten,
    neue Sammel-Kategorien: Magic, Star Wars Unlimited, Topps/Force Attax, Panini/Topps-Sticker & Alben.
    Eigene App (GitHub) und Bereich in NoxRift – dieselbe Datei. */
 (function () {
@@ -90,7 +90,14 @@
 .pc .hist .p{font-weight:900;color:var(--acc)}
 .pc .hist .del{border:none;background:transparent;cursor:pointer;color:var(--mut)}
 .pc .fuss{color:var(--mut);font-size:.75rem;text-align:center;line-height:1.6}
-.pc .fuss a{color:var(--cyan)}`;
+.pc .fuss a{color:var(--cyan)}
+.pc .gew{border-radius:12px;padding:9px 12px;background:rgba(43,245,154,.1);border:1px solid rgba(43,245,154,.45);font-size:.88rem;font-weight:700}
+.pc .kz{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px}
+.pc .kz div{background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.pc .kz b{display:block;font-size:1.1rem}.pc .kz span{font-size:.7rem;color:var(--mut)}
+.pc .stat{margin-top:4px;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:2px 9px;font-size:.72rem;font-weight:700;cursor:pointer}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;background:#c6ff3d;color:#0b0d14;font:700 15px system-ui,sans-serif;padding:10px 18px;border-radius:999px;transition:.25s;z-index:9999;pointer-events:none}
+.toast.an{opacity:1;transform:translate(-50%,0)}`;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
   const e = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
   const btn = (c, x, fn) => { const b = e('button', c, x); b.type = 'button'; if (fn) b.addEventListener('click', fn); return b; };
@@ -184,7 +191,7 @@
     [/trikot|hoodie|jacke|shirt|jeans|hose|pullover|kleid|mantel|cap\b|mütze/i, 'kleidung']];
   function erkenne(n) { for (const [re, k, sp] of ERKENNUNG) if (re.test(n)) return {k, sp}; return null; }
 
-  const neu = () => ({id: Date.now(), kat: '', spiel: '', checks: [], extra: [], name: '', maengel: '', preise: {}, bild: '', auto: true});
+  const neu = () => ({id: Date.now(), kat: '', spiel: '', checks: [], extra: [], name: '', maengel: '', preise: {}, bild: '', auto: true, ek: '', versand: '', menge: 1, tempo: 'max', status: 'geprueft', vk: ''});
   let S = Object.assign(neu(), lj('pc-s15', {})), fotos = [], schritt = lj('pc-step', 1), ansicht = 'check', modus = lj('pc-modus2', 'arbeit');
   const arbeit = () => modus === 'arbeit';
   const sp = () => { ls('pc-s15', S); ls('pc-step', schritt); };
@@ -193,27 +200,43 @@
   function zustand() { const K = KAT[S.kat]; if (!K) return null; const gew = K.checks.filter(c => S.checks.includes(c[0])); const st = gew.length ? Math.max(...gew.map(c => c[2])) : K.start;
     return {txt: K.skala[Math.min(st, K.skala.length - 1)], kurz: K.kurz ? K.kurz[st] : K.skala[Math.min(st, K.skala.length - 1)], punkte: gew.filter(c => c[2] > 0).map(c => c[3])}; }
   const plats = () => (KAT[S.kat] ? KAT[S.kat].plat : ['vinted', 'ebay', 'kleinanzeigen']);
-  function titel() { const n = S.name.trim(); if (!n) return ''; const Z = zustand(); const K = KAT[S.kat] || {};
+  function titel() { const n = S.name.trim(); if (!n) return ''; const Z = zustand(); const K = KAT[S.kat] || {}; const m = Math.max(1, +S.menge || 1);
     const zusatz = K.kurz && S.extra.length ? ' ' + S.extra.filter(x => !/gegradet|Komplettset/.test(x)).join(' ') : '';
     const sp = K.spiele && S.spiel && !new RegExp(SPIELE[S.spiel][0].split(' ')[0], 'i').test(n) ? ' ' + SPIELE[S.spiel][0] : '';
-    const t = n + sp + zusatz + (Z ? ' – ' + Z.kurz : ''); return t.length > 80 ? t.slice(0, 79) + '…' : t; }
-  function beschreibung() { const n = S.name.trim(); if (!n) return ''; const Z = zustand(); const m = S.maengel.trim();
-    return ['Weitere Artikel in meinem Profil – gern kombinieren!', '', n + (Z ? ' im Zustand „' + Z.txt + '“.' : '.'),
+    const t = (m > 1 ? m + 'x ' : '') + n + sp + zusatz + (Z ? ' – ' + Z.kurz : ''); return t.length > 80 ? t.slice(0, 79) + '…' : t; }
+  function beschreibung(pf) { const n = S.name.trim(); if (!n) return ''; const Z = zustand(); const m = S.maengel.trim(); const anz = Math.max(1, +S.menge || 1);
+    return ['Weitere Artikel in meinem Profil – gern kombinieren!', '', (anz > 1 ? anz + ' Stück: ' : '') + n + (Z ? ' im Zustand „' + Z.txt + '“.' : '.'),
       (Z && Z.punkte.length ? 'Zustand im Detail: ' + Z.punkte.join(', ') + '.' : 'Keine bekannten Mängel, siehe Fotos.') + (m ? ' ' + m.replace(/\.?$/, '.') : ''),
-      S.extra.length ? 'Dabei/geprüft: ' + S.extra.join(', ') + '.' : null, '', 'Privatverkauf, daher keine Garantie oder Rücknahme. Versand schnell und sicher verpackt.'].filter(x => x !== null).join('\n'); }
-  function empf(id) { const pr = zahl(S.preise[id]); if (!pr) return null; const start = Math.max(1, Math.ceil(pr * 1.05) - 0.01); return {pr, start, min: Math.round(pr * 0.9 * 10) / 10, netto: start * (1 - P[id].fee / 100)}; }
+      S.extra.length ? 'Dabei/geprüft: ' + S.extra.join(', ') + '.' : null, '',
+      pf === 'kleinanzeigen' ? 'Abholung oder Versand möglich (Versandkosten trägt der Käufer).' : 'Versand schnell und sicher verpackt.',
+      'Privatverkauf, daher keine Garantie oder Rücknahme.', pf === 'vinted' && hashtags() ? '\n' + hashtags() : null].filter(x => x !== null).join('\n'); }
+  function hashtags() { const K = KAT[S.kat] || {}; const w = S.name.toLowerCase().replace(/[^a-z0-9äöüß ]/g, ' ').split(/\s+/).filter(x => x.length > 2 && !/^\d+$/.test(x)).slice(0, 4);
+    const b = {tcg: [(SPIELE[S.spiel] || ['karten'])[0].toLowerCase().replace(/[^a-z]/g, ''), 'sammelkarten', 'tcg'], topps: ['topps', 'starwars', 'sammelkarten'], sticker: ['panini', 'stickeralbum', 'sammeln'], spiel: ['videospiel', 'gaming'], schuhe: ['sneaker'], kleidung: ['fashion'], schmuck: ['schmuck'], technik: ['technik']}[S.kat] || [];
+    return [...new Set(w.concat(b))].slice(0, 7).map(x => '#' + x).join(' '); }
+  const werte = v => String(v || '').split(/[;\s/|]+|,(?=\s)/).map(x => +x.replace(',', '.')).filter(x => x > 0);
+  const median = a => { const b = a.slice().sort((x, y) => x - y); const m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+  const TEMPO = {max: ['Maximal', 1.05], fair: ['Fair', 1], schnell: ['Schnell', 0.92]};
+  const schoen = v => v < 5 ? Math.round(v * 2) / 2 - 0.01 : v < 50 ? Math.ceil(v) - 0.01 : Math.ceil(v / 5) * 5 - 0.01;
+  function empf(id) { const w = werte(S.preise[id]); if (!w.length) return null; const pr = median(w); const f = (TEMPO[S.tempo] || TEMPO.max)[1];
+    const start = Math.max(0.99, schoen(pr * f)); const n = Math.max(1, +S.menge || 1); const netto = start * (1 - P[id].fee / 100);
+    const kosten = zahl(S.ek) + zahl(S.versand); return {pr, n: w.length, start, min: Math.round(pr * 0.9 * 10) / 10, netto, gewinn: netto * n - kosten, stueck: n > 1 ? start / n : 0}; }
   const bester = () => plats().map(id => ({id, x: empf(id)})).filter(o => o.x).sort((a, b) => b.x.netto - a.x.netto)[0];
-
+  /* Fotos dauerhaft auf dem Gerät (IndexedDB) */
+  const idb = () => new Promise((ok, no) => { try { const r = indexedDB.open('hustle-radar', 1); r.onupgradeneeded = () => r.result.createObjectStore('fotos'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); } catch (x) { no(x); } });
+  async function fotoSpeichern() { try { const d = await idb(); d.transaction('fotos', 'readwrite').objectStore('fotos').put(fotos.map(f => f.blob), String(S.id)); } catch (x) {} }
+  async function fotoLaden(id) { try { const d = await idb(); return await new Promise(ok => { const r = d.transaction('fotos').objectStore('fotos').get(String(id)); r.onsuccess = () => ok((r.result || []).map(b => ({blob: b, url: URL.createObjectURL(b)}))); r.onerror = () => ok([]); }); } catch (x) { return []; } }
+  async function fotoLoeschen(id) { try { const d = await idb(); d.transaction('fotos', 'readwrite').objectStore('fotos').delete(String(id)); } catch (x) {} }
+  function toast(t) { let el = document.getElementById('pc-toast'); if (!el) { el = e('div', 'toast'); el.id = 'pc-toast'; document.body.append(el); } el.textContent = t; el.classList.add('an'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('an'), 1800); try { navigator.vibrate && navigator.vibrate(15); } catch (x) {} }
   async function verkleinern(f, max, qual) { try { const bm = await createImageBitmap(f); const s = Math.min(1, max / Math.max(bm.width, bm.height)); const c = document.createElement('canvas'); c.width = Math.round(bm.width * s); c.height = Math.round(bm.height * s); c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height);
     const blob = await new Promise(r => c.toBlob(b => r(b || f), 'image/jpeg', qual)); return {blob, url: URL.createObjectURL(blob), data: max <= 200 ? c.toDataURL('image/jpeg', qual) : ''}; } catch (x) { return {blob: f, url: URL.createObjectURL(f), data: ''}; } }
   async function kopiere(t) { try { await navigator.clipboard.writeText(t); } catch (x) { const a = document.createElement('textarea'); a.value = t; document.body.append(a); a.select(); document.execCommand('copy'); a.remove(); } }
-  const kBtn = (txt, wert, cls) => { const b = btn('go' + (cls ? ' ' + cls : ''), txt); b.addEventListener('click', async () => { await kopiere(wert); const o = b.textContent; b.textContent = '✓ Kopiert'; setTimeout(() => { b.textContent = o; }, 1600); }); return b; };
+  const kBtn = (txt, wert, cls) => { const b = btn('go' + (cls ? ' ' + cls : ''), txt); b.addEventListener('click', async () => { await kopiere(typeof wert === 'function' ? wert() : wert); toast('✓ Kopiert'); const o = b.textContent; b.textContent = '✓ Kopiert'; setTimeout(() => { b.textContent = o; }, 1600); }); return b; };
 
   const H = () => lj('pc-verlauf', []);
-  function merken() { if (!S.name.trim()) return; const b = bester(); const L = H().filter(x => x.id !== S.id);
-    L.unshift({id: S.id, t: Date.now(), job: arbeit(), s: JSON.parse(JSON.stringify(S)), titel: titel(), preis: b ? b.x.start : 0, plat: b ? b.id : ''});
-    let n = Math.min(L.length, 60); while (n > 0 && !ls('pc-verlauf', L.slice(0, n))) n--; }
-
+  function merken() { if (!S.name.trim()) return; const b = bester(); const L = H(); const alt = L.find(x => x.id === S.id) || {}; const R = L.filter(x => x.id !== S.id);
+    R.unshift({id: S.id, t: alt.t || Date.now(), job: arbeit(), s: JSON.parse(JSON.stringify(S)), titel: titel(), preis: b ? b.x.start : 0, plat: S.plat || (b ? b.id : ''), status: S.status || 'geprueft', vk: S.vk || ''});
+    let n = Math.min(R.length, 80); while (n > 0 && !ls('pc-verlauf', R.slice(0, n))) n--; }
+  function setze(id, feld, wert) { const L = H(); const x = L.find(y => y.id === id); if (!x) return; x[feld] = wert; x.s[feld] = wert; ls('pc-verlauf', L); }
   function kopf() {
     const t = e('div', 'top'); const br = e('div', 'brand'); br.append(svg(LOGO)); const nm = e('div'); nm.append(e('b', '', 'Hustle-Radar'), e('small', '', 'BY NOXRIFT')); br.append(nm); t.append(br);
     t.append(btn('pill', ansicht === 'verlauf' ? '← Zurück' : 'Verlauf', () => { ansicht = ansicht === 'verlauf' ? 'check' : 'verlauf'; bau(); }));
@@ -228,14 +251,20 @@
 
   function s1() {
     const b = e('section', 'box'); b.append(e('h2', '', 'Was verkaufst du?'), e('div', 'sub', 'Foto machen, Namen eintippen – den Rest wählt die App schon vor. Passt etwas nicht, einfach umtippen.'));
-    const cam = e('label', 'cam'); const fi = e('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = true;
+    const cam = e('label', 'cam'); const fi = e('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.setAttribute('capture', 'environment');
     cam.append(fi, svg(CAM), e('span', '', fotos.length ? 'Noch ein Foto' : 'Foto machen'), e('small', '', KAT[S.kat] ? KAT[S.kat].fotos : 'Gerne mehrere Fotos – Mängel extra'));
-    fi.addEventListener('change', async ev => { for (const f of [...(ev.target.files || [])].slice(0, 8 - fotos.length)) { fotos.push(await verkleinern(f, 1600, .9)); if (!S.bild) S.bild = (await verkleinern(f, 160, .7)).data; } sp(); bau(); });
-    b.append(cam);
-    if (fotos.length) { const g = e('div', 'fotos'); fotos.forEach((f, i) => { const d = e('div'); const im = e('img'); im.src = f.url; im.alt = 'Foto ' + (i + 1); d.append(im, btn('', '✕', () => { fotos.splice(i, 1); bau(); })); g.append(d); }); b.append(g); }
+    const neuFotos = async ev => { for (const f of [...(ev.target.files || [])].slice(0, 10 - fotos.length)) { fotos.push(await verkleinern(f, 1600, .9)); if (!S.bild) S.bild = (await verkleinern(f, 160, .7)).data; } fotoSpeichern(); sp(); bau(); };
+    fi.addEventListener('change', neuFotos);
+    const gal = e('label', 'go leise'); gal.style.cursor = 'pointer'; const gi = e('input'); gi.type = 'file'; gi.accept = 'image/*'; gi.multiple = true; gi.style.display = 'none'; gi.addEventListener('change', neuFotos); gal.append(gi, '🖼 Aus Galerie wählen (mehrere)');
+    b.append(cam, gal);
+    if (fotos.length) { const g = e('div', 'fotos'); fotos.forEach((f, i) => { const d = e('div'); const im = e('img'); im.src = f.url; im.alt = 'Foto ' + (i + 1); d.append(im, btn('', '✕', () => { fotos.splice(i, 1); fotoSpeichern(); if (!fotos.length) S.bild = ''; sp(); bau(); })); g.append(d); }); b.append(g); b.append(e('div', 'm', fotos.length + ' Foto' + (fotos.length > 1 ? 's' : '') + ' gespeichert – bleiben auch nach dem Schließen.')); }
     const ni = e('input'); ni.placeholder = 'z. B. Glurak 4/102, Force Attax LE7, Panini EM 2000'; ni.value = S.name; ni.autocomplete = 'off';
     ni.addEventListener('change', () => { S.name = ni.value; const r = erkenne(S.name); if (r && (S.auto || !S.kat)) { if (S.kat !== r.k) { S.checks = []; S.extra = []; } S.kat = r.k; if (r.sp) S.spiel = r.sp; S.auto = true; } else if (!S.kat) { S.kat = 'sonst'; S.auto = true; } if (S.kat === 'tcg' && !S.spiel) S.spiel = 'pokemon'; sp(); bau(); });
-    b.append(e('div', 'lbl', 'Name'), ni);
+    const mz = e('div', 'zwei'); const mi1 = e('input'); mi1.inputMode = 'numeric'; mi1.placeholder = 'Stück'; mi1.value = S.menge > 1 ? S.menge : ''; mi1.addEventListener('change', () => { S.menge = Math.max(1, Math.floor(zahl(mi1.value)) || 1); sp(); bau(); });
+    const ek = e('input'); ek.inputMode = 'decimal'; ek.placeholder = 'Einkauf € (optional)'; ek.value = S.ek; ek.addEventListener('change', () => { S.ek = ek.value; sp(); });
+    mz.append(mi1, ek);
+    b.append(e('div', 'lbl', 'Name'), ni, e('div', 'lbl', 'Menge · Einkaufspreis'), mz);
+    ni.addEventListener('keydown', ev => { if (ev.key === 'Enter') ni.blur(); });
     const kl = e('div', 'lbl', 'Art'); if (S.kat && S.auto) kl.append(e('em', '', 'automatisch erkannt')); b.append(kl);
     const k = e('div', 'kats'); Object.entries(KAT).forEach(([id, K]) => { const x = btn(); x.setAttribute('aria-pressed', String(S.kat === id)); x.append(e('span', 'e', K.e), e('span', '', K.l)); x.addEventListener('click', () => { if (S.kat !== id) { S.checks = []; S.extra = []; } S.kat = id; S.auto = false; if (id === 'tcg' && !S.spiel) S.spiel = 'pokemon'; sp(); bau(); }); k.append(x); }); b.append(k);
     const K = KAT[S.kat];
@@ -253,45 +282,71 @@
     root.append(b);
   }
   function s2() {
-    const b = e('section', 'box'); b.append(e('h2', '', 'Was zahlen andere?'), e('div', 'sub', 'Link öffnen, letzten echten Verkaufspreis eintragen. Die Plattformen sind passend zur Art vorausgewählt.'));
+    const b = e('section', 'box'); b.append(e('h2', '', 'Was zahlen andere?'), e('div', 'sub', 'Link öffnen, die letzten echten Verkaufspreise eintragen – gern mehrere mit Leerzeichen (z. B. „34 38 36“). Die App nimmt den Mittelwert (Median), Ausreißer zählen kaum.'));
     plats().forEach(id => { const p = P[id]; const r = e('div', 'row'); const l = e('div'); l.append(e('b', '', p.l), e('br')); const a = e('a', '', '↗ ' + p.hint); a.href = p.such(S.name); a.target = '_blank'; a.rel = 'noopener'; l.append(a);
+      const w = werte(S.preise[id]); if (w.length > 1) l.append(e('div', 'm', 'Median ' + eur(median(w)) + ' aus ' + w.length));
       const i = e('input'); i.inputMode = 'decimal'; i.placeholder = '€'; i.value = S.preise[id] || ''; i.addEventListener('change', () => { S.preise[id] = i.value; sp(); bau(); }); r.append(l, i); b.append(r); });
     b.append(weiter('Weiter zum Text →', 3, !bester())); if (!bester()) b.append(e('div', 'm', 'Mindestens einen Preis eintragen.'));
     root.append(b);
   }
+  let pfText = 'vinted';
   function s3() {
-    const b = e('section', 'box'); b.append(e('h2', '', 'Dein Anzeigentext'), e('div', 'sub', 'Fertig formuliert – nur noch kopieren.'));
-    const T = titel(), B = beschreibung(); const f1 = e('div', 'feld'); f1.append(e('div', 'lbl', 'Titel'), e('div', 'v', T), kBtn('Titel kopieren', T)); const f2 = e('div', 'feld'); f2.append(e('div', 'lbl', 'Beschreibung'), e('div', 'v', B), kBtn('Beschreibung kopieren', B)); b.append(f1, f2);
+    const b = e('section', 'box'); b.append(e('h2', '', 'Dein Anzeigentext'), e('div', 'sub', 'Fertig formuliert – je Plattform passend. Nur noch kopieren.'));
+    const T = titel(); const g = e('div', 'seg'); plats().filter(x => x !== 'cardmarket').forEach(id => { const x = btn('', P[id].l, () => { pfText = id; bau(); }); x.setAttribute('aria-pressed', String(pfText === id)); g.append(x); }); b.append(g);
+    if (!plats().includes(pfText)) pfText = plats().find(x => x !== 'cardmarket') || 'vinted';
+    const B = beschreibung(pfText);
+    const f1 = e('div', 'feld'); const tl = e('div', 'lbl', 'Titel'); tl.append(e('em', '', T.length + '/80 Zeichen')); f1.append(tl, e('div', 'v', T), kBtn('Titel kopieren', T));
+    const f2 = e('div', 'feld'); f2.append(e('div', 'lbl', 'Beschreibung · ' + P[pfText].l), e('div', 'v', B), kBtn('Beschreibung kopieren', B)); b.append(f1, f2);
+    const best = bester(); b.append(kBtn('📋 Alles auf einmal kopieren', () => T + '\n\n' + B + (best ? '\n\nPreis: ' + eur(best.x.start) : ''), 'leise'));
     b.append(weiter('Weiter zum Preis →', 4)); root.append(b);
   }
   function s4() {
     const b = e('section', 'box'); b.append(e('h2', '', 'Preisempfehlung')); const best = bester(); const T = titel(); const konto = arbeit() ? NOXRIFT : {};
     if (!best) { b.append(e('div', 'warn', 'Noch kein Vergleichspreis – zurück zu Schritt 2.')); root.append(b); return; }
+    const tg = e('div', 'modus'); tg.style.gridTemplateColumns = '1fr 1fr 1fr'; Object.entries(TEMPO).forEach(([k, [l]]) => { const x = btn('', null, () => { S.tempo = k; sp(); bau(); }); x.append(e('span', 'dot'), l); x.setAttribute('aria-pressed', String(S.tempo === k)); tg.append(x); }); b.append(tg);
     plats().forEach(id => { const p = P[id], x = empf(id); const d = e('div', 'plat' + (best.id === id ? ' top' : '')); const k = e('div', 'kopf'); k.append(e('b', '', p.l));
       if (!x) { k.append(e('span', 'm', 'kein Vergleichspreis')); d.append(k); b.append(d); return; }
       if (best.id === id) k.append(e('span', 'badge', 'BESTE WAHL')); k.append(e('span', 'preis', eur(x.start))); d.append(k);
-      d.append(e('div', 'm', 'Zuletzt verkauft für ' + eur(x.pr) + ' · nie unter ' + eur(x.min) + (p.fee ? ' · ' + p.fee + ' % Gebühr' : '')));
+      d.append(e('div', 'm', (x.n > 1 ? 'Median aus ' + x.n + ' Verkäufen: ' : 'Zuletzt verkauft für ') + eur(x.pr) + ' · nie unter ' + eur(x.min) + (p.fee ? ' · ' + p.fee + ' % Gebühr' : '') + (x.stueck ? ' · ' + eur(x.stueck) + ' pro Stück' : '')));
+      if (zahl(S.ek) || zahl(S.versand)) d.append(e('div', x.gewinn >= 0 ? 'gew' : 'warn', (x.gewinn >= 0 ? '💰 Gewinn ca. ' : '⚠️ Verlust ca. ') + eur(Math.abs(x.gewinn)) + ' nach Einkauf' + (zahl(S.versand) ? ' und Versand' : '')));
       const z = e('div', 'zwei'); z.append(kBtn('Preis kopieren', String(x.start.toFixed(2)).replace('.', ','), 'leise'));
-      const a = e('a', 'go' + (best.id === id ? '' : ' leise'), 'Einstellen' + (konto[id] ? ' als ' + konto[id] : (arbeit() ? ' (NoxRift)' : '')) + ' ↗'); a.href = p.neu; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', () => { if (T) kopiere(T); merken(); }); z.append(a); d.append(z); b.append(d); });
+      const a = e('a', 'go' + (best.id === id ? '' : ' leise'), 'Einstellen' + (konto[id] ? ' als ' + konto[id] : (arbeit() ? ' (NoxRift)' : '')) + ' ↗'); a.href = p.neu; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', () => { if (T) kopiere(T); S.status = 'eingestellt'; S.plat = id; merken(); toast('Titel kopiert – jetzt einfügen'); }); z.append(a); d.append(z); b.append(d); });
+    const vs = e('input'); vs.inputMode = 'decimal'; vs.placeholder = 'Versand zahlst du selbst? € (optional)'; vs.value = S.versand; vs.addEventListener('change', () => { S.versand = vs.value; sp(); bau(); }); b.append(vs);
+    if (best.x.start >= 50) b.append(e('div', 'arb', best.x.start >= 150 && /tcg|topps/.test(S.kat) ? '💎 Hoher Wert: über Grading (PSA/CGC) nachdenken und nur versichert versenden.' : '📦 Ab 50 € nur versichert und mit Sendungsverfolgung versenden.'));
     if (arbeit()) { b.append(e('div', 'arb', 'Arbeitsmodus: Diese Anzeige ist für die NoxRift-Konten. Schick sie an Manu – oder stell sie direkt ein, wenn auf diesem Gerät das NoxRift-Konto angemeldet ist.')); b.append(btn('go vio', 'An NoxRift (Manu) schicken', schicken)); }
-    b.append(e('div', 'm', '„Einstellen“ öffnet das Konto, das auf diesem Gerät angemeldet ist (am Handy direkt die App), und kopiert den Titel. Preis = letzter Verkauf + 5 % Verhandlungspuffer.'));
-    b.append(btn('go leise', '+ Nächster Artikel', () => { merken(); S = neu(); fotos = []; schritt = 1; sp(); bau(); window.scrollTo && window.scrollTo({top: 0, behavior: 'smooth'}); }));
+    b.append(e('div', 'm', '„Einstellen“ öffnet das Konto, das auf diesem Gerät angemeldet ist (am Handy direkt die App), kopiert den Titel und markiert den Artikel im Verlauf als „eingestellt“.'));
+    b.append(btn('go leise', '+ Nächster Artikel', async () => { merken(); S = neu(); fotos = []; schritt = 1; sp(); bau(); window.scrollTo && window.scrollTo({top: 0, behavior: 'smooth'}); }));
     root.append(b);
   }
   async function schicken() { merken(); const best = bester(); const txt = ['📦 NOXRIFT-ANZEIGE', '', 'TITEL: ' + titel(), '', 'BESCHREIBUNG:', beschreibung(), '', 'PREIS: ' + (best ? eur(best.x.start) + ' auf ' + P[best.id].l + ' (nie unter ' + eur(best.x.min) + ')' : '–')].join('\n');
     await kopiere(txt); const files = fotos.map((f, i) => new File([f.blob], 'noxrift-' + (i + 1) + '.jpg', {type: 'image/jpeg'}));
     try { if (files.length && navigator.canShare && navigator.canShare({files})) { await navigator.share({files, text: txt}); return; } if (navigator.share) { await navigator.share({text: txt}); return; } } catch (x) { if (x && x.name === 'AbortError') return; }
     window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank', 'noopener'); }
+  let suche = '', filt = 'alle', weg = null;
+  const STAT = {geprueft: '🔍 Geprüft', eingestellt: '📤 Eingestellt', verkauft: '✅ Verkauft'};
   function verlauf() {
     const b = e('section', 'box'); b.append(e('h2', '', 'Verlauf'), e('div', 'sub', 'Antippen öffnet den Artikel wieder. Gespeichert auf diesem Gerät.'));
-    const L = H(); if (!L.length) b.append(e('div', 'm', 'Noch nichts geprüft.'));
-    const l = e('div', 'hist'); L.forEach(x => { const it = e('div', 'it'); it.setAttribute('role', 'button'); it.tabIndex = 0; const im = x.s.bild ? Object.assign(e('img'), {src: x.s.bild, alt: ''}) : e('div', 'ph', (KAT[x.s.kat] || KAT.sonst).e);
-      const m = e('div'); m.style.minWidth = '0'; m.append(e('div', 't', x.titel || x.s.name), e('div', 'm', datum(x.t) + (x.job ? ' · NoxRift' : ' · Privat') + (x.plat ? ' · ' + P[x.plat].l : '')));
-      const r = e('div'); r.style.textAlign = 'right'; r.append(e('div', 'p', x.preis ? eur(x.preis) : '–'));
-      const del = btn('del', '🗑', ev => { ev.stopPropagation(); ls('pc-verlauf', H().filter(y => y.id !== x.id)); bau(); }); del.title = 'Löschen'; r.append(del);
-      it.append(im, m, r); const auf = () => { S = Object.assign(neu(), x.s); fotos = []; schritt = 4; ansicht = 'check'; sp(); bau(); }; it.addEventListener('click', auf); it.addEventListener('keydown', ev => { if (ev.key === 'Enter') auf(); }); l.append(it); });
-    b.append(l);
+    const A = H(); const vk = A.filter(x => x.status === 'verkauft'); const ums = vk.reduce((s, x) => s + (zahl(x.vk) || x.preis || 0), 0);
+    const abw = vk.filter(x => zahl(x.vk) && x.preis).map(x => (zahl(x.vk) - x.preis) / x.preis * 100);
+    const kz = e('div', 'kz'); [['Geprüft', A.length], ['Eingestellt', A.filter(x => x.status === 'eingestellt').length], ['Verkauft', vk.length], ['Umsatz', eur(ums)], ['Ø vs. Empfehlung', abw.length ? (abw.reduce((s, x) => s + x, 0) / abw.length >= 0 ? '+' : '') + Math.round(abw.reduce((s, x) => s + x, 0) / abw.length) + ' %' : '–']].forEach(([l, v]) => { const d = e('div'); d.append(e('b', '', String(v)), e('span', '', l)); kz.append(d); }); b.append(kz);
+    const si = e('input'); si.placeholder = '🔎 Suchen …'; si.value = suche; si.addEventListener('input', () => { suche = si.value; zeige(); }); b.append(si);
+    const fg = e('div', 'seg'); [['alle', 'Alle'], ['geprueft', 'Geprüft'], ['eingestellt', 'Eingestellt'], ['verkauft', 'Verkauft'], ['job', 'NoxRift'], ['privat', 'Privat']].forEach(([k, l]) => { const x = btn('', l, () => { filt = k; bau(); }); x.setAttribute('aria-pressed', String(filt === k)); fg.append(x); }); b.append(fg);
+    const l = e('div', 'hist'); b.append(l);
+    function zeige() { l.replaceChildren(); const q = suche.toLowerCase();
+      const L = A.filter(x => (!q || (x.titel || x.s.name || '').toLowerCase().includes(q)) && (filt === 'alle' || (filt === 'job' ? x.job : filt === 'privat' ? !x.job : (x.status || 'geprueft') === filt)));
+      if (!L.length) l.append(e('div', 'm', A.length ? 'Nichts gefunden.' : 'Noch nichts geprüft.'));
+      L.forEach(x => { const it = e('div', 'it'); it.setAttribute('role', 'button'); it.tabIndex = 0; const im = x.s.bild ? Object.assign(e('img'), {src: x.s.bild, alt: ''}) : e('div', 'ph', (KAT[x.s.kat] || KAT.sonst).e);
+        const m = e('div'); m.style.minWidth = '0'; m.append(e('div', 't', x.titel || x.s.name), e('div', 'm', datum(x.t) + (x.job ? ' · NoxRift' : ' · Privat') + (x.plat ? ' · ' + P[x.plat].l : '')));
+        const st = btn('stat', STAT[x.status || 'geprueft'], ev => { ev.stopPropagation(); const n = {geprueft: 'eingestellt', eingestellt: 'verkauft', verkauft: 'geprueft'}[x.status || 'geprueft']; setze(x.id, 'status', n); if (n === 'verkauft') { const v = prompt('Für wie viel verkauft? (€)', String(x.preis || '').replace('.', ',')); if (v) setze(x.id, 'vk', v); } bau(); }); m.append(st);
+        const r = e('div'); r.style.textAlign = 'right'; r.append(e('div', 'p', x.status === 'verkauft' && x.vk ? eur(zahl(x.vk)) : x.preis ? eur(x.preis) : '–'));
+        const dup = btn('del', '⧉', ev => { ev.stopPropagation(); S = Object.assign(neu(), JSON.parse(JSON.stringify(x.s)), {id: Date.now(), status: 'geprueft', vk: '', plat: ''}); fotos = []; schritt = 1; ansicht = 'check'; sp(); bau(); toast('Kopie angelegt'); }); dup.title = 'Duplizieren';
+        const del = btn('del', '🗑', ev => { ev.stopPropagation(); weg = x; ls('pc-verlauf', H().filter(y => y.id !== x.id)); bau(); }); del.title = 'Löschen'; r.append(dup, del);
+        it.append(im, m, r); const auf = async () => { S = Object.assign(neu(), x.s); fotos = await fotoLaden(x.id); schritt = 4; ansicht = 'check'; sp(); bau(); }; it.addEventListener('click', auf); it.addEventListener('keydown', ev => { if (ev.key === 'Enter') auf(); }); l.append(it); }); }
+    zeige();
+    if (weg) { const u = btn('go leise', '↩ „' + (weg.titel || '').slice(0, 30) + '“ wiederherstellen', () => { const L = H(); L.unshift(weg); ls('pc-verlauf', L); weg = null; bau(); }); b.append(u); }
     const k = e('div', 'zwei'); ['vinted', 'ebay', 'kleinanzeigen', 'cardmarket'].forEach(id => { const a = e('a', 'go leise', 'Meine ' + P[id].l + ' ↗'); a.href = P[id].meine; a.target = '_blank'; a.rel = 'noopener'; k.append(a); }); b.append(e('div', 'lbl', 'Konten'), k);
+    b.append(btn('go leise', '⬇ Verlauf als Tabelle (CSV)', () => { const z = [['Datum', 'Titel', 'Status', 'Plattform', 'Empfehlung', 'Verkauft für', 'Modus']].concat(H().map(x => [datum(x.t), x.titel, STAT[x.status || 'geprueft'].slice(2), x.plat ? P[x.plat].l : '', String(x.preis || '').replace('.', ','), x.vk || '', x.job ? 'NoxRift' : 'Privat']));
+      const csv = '﻿' + z.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); a.download = 'Hustle-Radar Verlauf.csv'; a.click(); toast('Tabelle gespeichert'); }));
     root.append(b);
   }
   function datenschutz() {
@@ -325,5 +380,6 @@
     const i = e('input'); i.type = 'password'; i.inputMode = 'numeric'; i.autocomplete = 'off'; i.placeholder = 'Zugangscode';
     const m = e('div'); const los = async () => { if (await pruef(i.value)) { ls('pc-zugang', HASH); bau(); } else m.replaceChildren(e('div', 'warn', 'Code falsch.')); };
     i.addEventListener('keydown', ev => { if (ev.key === 'Enter') los(); }); c.append(i, btn('go', 'Öffnen', los), m); root.append(c); }
-  if (window.dash || lj('pc-zugang', '') === HASH) bau(); else sperre();
+  addEventListener('offline', () => toast('Offline – alles läuft weiter, Links brauchen Internet')); 
+  if (window.dash || lj('pc-zugang', '') === HASH) { bau(); fotoLaden(S.id).then(f => { if (f.length && !fotos.length) { fotos = f; bau(); } }); } else sperre();
 })();
