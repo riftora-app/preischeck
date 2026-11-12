@@ -6,8 +6,8 @@
   const css = `
 .pc{--bg:#0b0d14;--s1:#12151f;--s2:#181c29;--line:#262c3d;--txt:#f4f6fb;--mut:#9aa3ba;--acc:#c6ff3d;--vio:#7c5cff;--pink:#ff4fd8;--cyan:#3df5ff;--ok:#2bf59a;color:var(--txt);font:16px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;display:grid;gap:14px;max-width:540px!important;margin:0 auto!important;width:100%!important;min-width:0;box-sizing:border-box}
 .pc>*{min-width:0;max-width:100%}
-.pc .steps{grid-template-columns:repeat(4,minmax(0,1fr))!important;width:100%!important}
-.pc .steps button{min-width:0!important;width:auto!important;margin:0!important}
+.pc .pcst{grid-template-columns:repeat(4,minmax(0,1fr))!important;width:100%!important}
+.pc .pcst button{min-width:0!important;width:auto!important;margin:0!important}
 .pc *{box-sizing:border-box}
 .pc button{font:inherit;color:inherit}
 .pc a{color:inherit}
@@ -22,13 +22,13 @@
 .pc .modus button[aria-pressed=true]{background:var(--s2);color:var(--txt);box-shadow:inset 0 0 0 1px var(--line)}
 .pc .modus button[aria-pressed=true] .dot{background:var(--acc)}
 .pc .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--line);margin-right:6px;vertical-align:1px}
-.pc .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.pc .steps button{border:none;background:none;cursor:pointer;display:grid;gap:6px;padding:0;text-align:left}
-.pc .steps .bar{height:5px;border-radius:9px;background:var(--line)}
-.pc .steps .t{font-size:.75rem;font-weight:700;color:var(--mut)}
-.pc .steps button.ok .bar{background:var(--ok)}
-.pc .steps button.an .bar{background:linear-gradient(90deg,var(--vio),var(--pink))}
-.pc .steps button.an .t{color:var(--txt)}
+.pc .pcst{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pc .pcst button{border:none;background:none;cursor:pointer;display:grid;gap:6px;padding:0;text-align:left}
+.pc .pcst .pcbar{height:5px;border-radius:9px;background:var(--line)}
+.pc .pcst .t{font-size:.75rem;font-weight:700;color:var(--mut)}
+.pc .pcst button.ok .pcbar{background:var(--ok)}
+.pc .pcst button.an .pcbar{background:linear-gradient(90deg,var(--vio),var(--pink))}
+.pc .pcst button.an .t{color:var(--txt)}
 .pc .box{background:var(--s1);border:1px solid var(--line);border-radius:20px;padding:18px;display:grid;gap:14px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
 .pc h2{margin:0!important;font-size:1.35rem!important;line-height:1.2!important;font-weight:800!important;letter-spacing:-.02em;color:var(--txt)!important}
 .pc .sub{color:var(--mut);font-size:.92rem;margin-top:-8px}
@@ -108,7 +108,7 @@
 @media (prefers-reduced-motion:reduce){.pc .box{animation:none}}
 .pc .ziel{height:8px;border-radius:9px;background:var(--line);overflow:hidden}.pc .ziel i{display:block;height:100%;background:linear-gradient(90deg,var(--vio),var(--pink))}
 .pc .opt{display:flex;gap:6px;justify-content:space-between;align-items:center;flex-wrap:wrap}.pc .opt>div{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.pc .seg button{min-height:38px}.pc button:focus-visible,.pc a:focus-visible,.pc label:focus-within{outline:2px solid var(--cyan);outline-offset:2px}
+.pc .pcbar{display:block;width:100%!important;min-width:0!important;max-width:100%!important;margin:0!important}.pc .seg button{min-height:38px}.pc button:focus-visible,.pc a:focus-visible,.pc label:focus-within{outline:2px solid var(--cyan);outline-offset:2px}
 .konf{position:fixed;font-size:26px;pointer-events:none;z-index:9999;animation:konf 1.1s ease-out forwards}@keyframes konf{to{transform:translate(var(--x),var(--y)) rotate(360deg);opacity:0}}`;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
   const e = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
@@ -278,7 +278,7 @@
   }
   function leiste() {
     const L = ['Foto & Zustand', 'Vergleich', 'Text', 'Preis']; const ok = [!!(S.kat && S.name.trim()), !!bester(), !!titel(), !!bester()];
-    const s = e('div', 'steps'); L.forEach((l, i) => { const b = btn((schritt === i + 1 ? 'an' : '') + (ok[i] ? ' ok' : '')); b.append(e('span', 'bar'), e('span', 't', (i + 1) + ' · ' + l)); b.addEventListener('click', () => { schritt = i + 1; sp(); bau(); }); s.append(b); }); root.append(s);
+    const s = e('div', 'pcst'); L.forEach((l, i) => { const b = btn((schritt === i + 1 ? 'an' : '') + (ok[i] ? ' ok' : '')); b.append(e('span', 'pcbar'), e('span', 't', (i + 1) + ' · ' + l)); b.addEventListener('click', () => { schritt = i + 1; sp(); bau(); }); s.append(b); }); root.append(s);
   }
   function weiter(txt, ziel, aus) { const b = btn('go', txt, () => { schritt = ziel; if (ziel === 4) merken(); sp(); bau(); window.scrollTo && window.scrollTo({top: 0, behavior: 'smooth'}); }); b.disabled = !!aus; return b; }
 
@@ -419,11 +419,11 @@
     if (weg) { const u = btn('go leise', '↩ „' + (weg.titel || '').slice(0, 30) + '“ wiederherstellen', () => { const L = H(); L.unshift(weg); ls('pc-verlauf', L); weg = null; bau(); }); b.append(u); }
     const k = e('div', 'zwei'); ['vinted', 'ebay', 'kleinanzeigen', 'cardmarket'].forEach(id => { const a = e('a', 'go leise', 'Meine ' + P[id].l + ' ↗'); a.href = P[id].meine; a.target = '_blank'; a.rel = 'noopener'; k.append(a); }); b.append(e('div', 'lbl', 'Konten'), k);
     b.append(btn('go leise', '⬇ Verlauf als Tabelle (CSV)', () => { const z = [['Datum', 'Titel', 'Status', 'Plattform', 'Empfehlung', 'Verkauft für', 'Modus', 'Person', 'Einkauf']].concat(H().map(x => [datum(x.t), x.titel, STAT[x.status || 'geprueft'].slice(2), x.plat ? P[x.plat].l : '', String(x.preis || '').replace('.', ','), x.vk || '', x.job ? 'NoxRift' : 'Privat', x.wer || '', x.s.ek || '']));
-      const csv = '﻿' + z.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); a.download = 'Hustle-Radar Verlauf.csv'; a.click(); toast('Tabelle gespeichert'); }));
+      const csv = '﻿' + z.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\n'); if (window.dash) { kopiere(csv.slice(1).replace(/;/g, '\t')); toast('Tabelle kopiert – in Google Sheets einfügen'); return; } const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); a.download = 'Hustle-Radar Verlauf.csv'; a.click(); toast('Tabelle gespeichert'); }));
     const bk = e('div', 'zwei'); bk.append(btn('go leise', '💾 Backup speichern', () => { const daten = {app: 'hustle-radar', v: 1, verlauf: H(), sig: lj('pc-sig', ''), ziel: lj('pc-ziel', '')}; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(daten)], {type: 'application/json'})); a.download = 'Hustle-Radar Backup.json'; a.click(); toast('Backup gespeichert'); }));
     const il = e('label', 'go leise', '📥 Backup laden'); il.style.cursor = 'pointer'; const ii = e('input'); ii.type = 'file'; ii.accept = '.json,application/json'; ii.style.display = 'none';
     ii.addEventListener('change', async () => { try { einspielen(JSON.parse(await ii.files[0].text())); } catch (x) { toast('Datei passt nicht'); } });
-    il.append(ii); bk.append(il); b.append(e('div', 'lbl', 'Handy ↔ PC abgleichen'), bk);
+    il.append(ii); bk.append(il); b.append(e('div', 'lbl', 'Handy ↔ PC abgleichen')); if (!window.dash) b.append(bk);
     const bk2 = e('div', 'zwei'); bk2.append(kBtn('📋 Backup als Text kopieren', () => JSON.stringify({app: 'hustle-radar', v: 1, verlauf: H().map(x => Object.assign({}, x, {s: Object.assign({}, x.s, {bild: ''})}))}), 'leise'), btn('go leise', '📋 Backup-Text einfügen', () => frage('Backup-Text hier einfügen', '', v => { try { einspielen(JSON.parse(v)); } catch (x) { toast('Text passt nicht'); } }, 'text'))); b.append(bk2, e('div', 'm', 'Tipp: Backup-Text per WhatsApp an dich selbst schicken und auf dem anderen Gerät einfügen.'));
     root.append(b);
   }
