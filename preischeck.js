@@ -1,5 +1,5 @@
 /* © 2026 NOXRIFT – Manuel. Alle Rechte vorbehalten. Nutzung nur für das NoxRift-Team.
-   Hustle-Radar v19 – Runde 4 (Feinschliff: Ein-Tipp-Knöpfe, eigene Eingabefenster, Tausenderpunkte, Backup als Text …), Runde 3 (Hell/Dunkel, große Schrift, Team-Namen, Wochenziel, LEGO & Figuren, Backup, Wischen …), Runde 2 (Verhandeln, Käufer-Antworten, Ladenhüter, Bündel …), Runde 1 (Fotos bleiben, Median-Preise, Gewinnrechner, Verlauf mit Status & Statistik …), Profi-Design, neues Logo, alles vorausgewählt (änderbar), Arbeitsmodus für NoxRift-Konten,
+   Hustle-Radar v20 – Foto-Erkennung auf dem Gerät (Name, Art, Menge automatisch), Runde 4 (Feinschliff: Ein-Tipp-Knöpfe, eigene Eingabefenster, Tausenderpunkte, Backup als Text …), Runde 3 (Hell/Dunkel, große Schrift, Team-Namen, Wochenziel, LEGO & Figuren, Backup, Wischen …), Runde 2 (Verhandeln, Käufer-Antworten, Ladenhüter, Bündel …), Runde 1 (Fotos bleiben, Median-Preise, Gewinnrechner, Verlauf mit Status & Statistik …), Profi-Design, neues Logo, alles vorausgewählt (änderbar), Arbeitsmodus für NoxRift-Konten,
    neue Sammel-Kategorien: Magic, Star Wars Unlimited, Topps/Force Attax, Panini/Topps-Sticker & Alben.
    Eigene App (GitHub) und Bereich in NoxRift – dieselbe Datei. */
 (function () {
@@ -211,7 +211,7 @@
     [/force attax|match attax|topps (chrome|star wars|now)|refractor|card trader|widevision/i, 'topps'],
     [/panini|sticker|stickeralbum|sammelalbum|\b(em|wm)\s?(19|20)\d\d|euro 20\d\d/i, 'sticker'],
     [/star wars unlimited|\bswu\b/i, 'tcg', 'swu'], [/magic|\bmtg\b|planeswalker/i, 'tcg', 'magic'], [/yu-?gi-?oh/i, 'tcg', 'yugioh'], [/lorcana/i, 'tcg', 'lorcana'], [/one piece card|op0\d/i, 'tcg', 'onepiece'],
-    [/pok[eé]mon|glurak|pikachu|mewtu|evoli|turtok|bisasam|\b\d{1,3}\/\d{2,3}\b|\bvmax\b|\bex\b|\bgx\b/i, 'tcg', 'pokemon'],
+    [/\b(kp|hp)\s?\d{2,3}\b|pok[eé]mon|glurak|pikachu|mewtu|evoli|turtok|bisasam|\b\d{1,3}\/\d{2,3}\b|\bvmax\b|\bex\b|\bgx\b/i, 'tcg', 'pokemon'],
     [/\bps[1-5]\b|playstation|xbox|switch|nintendo|\bds\b|3ds|gamecube|\bwii\b|game ?boy|\bpc spiel/i, 'spiel'],
     [/nike|adidas|jordan|air max|sneaker|schuh|yeezy|new balance|vans|converse|puma/i, 'schuhe'],
     [/\b(925|585|750|333)\b|\bringe?\b|halskette|\bkette\b|armband|ohrring|schmuck|uhr\b/i, 'schmuck'],
@@ -226,6 +226,7 @@
   const sp = () => { ls('pc-s15', S); ls('pc-step', schritt); };
   const root = document.getElementById('pc-root'); if (!root) return; root.className = 'pc';
 
+  function setzeName(v, extra) { S.name = v; const r = erkenne(v) || (extra ? erkenne(v + ' ' + extra) : null); if (r && (S.auto || !S.kat)) { if (S.kat !== r.k) { S.checks = []; S.extra = []; } S.kat = r.k; if (r.sp) S.spiel = r.sp; S.auto = true; } else if (!S.kat) { S.kat = 'sonst'; S.auto = true; } if (S.kat === 'tcg' && !S.spiel) S.spiel = 'pokemon'; }
   function zustand() { const K = KAT[S.kat]; if (!K) return null; const gew = K.checks.filter(c => S.checks.includes(c[0])); const st = gew.length ? Math.max(...gew.map(c => c[2])) : K.start;
     return {txt: K.skala[Math.min(st, K.skala.length - 1)], kurz: K.kurz ? K.kurz[st] : K.skala[Math.min(st, K.skala.length - 1)], punkte: gew.filter(c => c[2] > 0).map(c => c[3])}; }
   const plats = () => (KAT[S.kat] ? KAT[S.kat].plat : ['vinted', 'ebay', 'kleinanzeigen']);
@@ -255,6 +256,35 @@
   const idb = () => new Promise((ok, no) => { try { const r = indexedDB.open('hustle-radar', 1); r.onupgradeneeded = () => r.result.createObjectStore('fotos'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); } catch (x) { no(x); } });
   async function fotoSpeichern() { try { const d = await idb(); d.transaction('fotos', 'readwrite').objectStore('fotos').put(fotos.map(f => f.blob), String(S.id)); } catch (x) {} }
   async function fotoLaden(id) { try { const d = await idb(); return await new Promise(ok => { const r = d.transaction('fotos').objectStore('fotos').get(String(id)); r.onsuccess = () => ok((r.result || []).map(b => ({blob: b, url: URL.createObjectURL(b)}))); r.onerror = () => ok([]); }); } catch (x) { return []; } }
+  /* Foto-Erkennung direkt auf dem Gerät (Texterkennung, kein Server, keine Kosten) */
+  const OCR = /github\.io$|^localhost$|^127\./.test(location.hostname) ? new URL('ocr/', location.href).href : 'https://riftora-app.github.io/preischeck/ocr/';
+  const MARKEN = ['Pokémon', 'LEGO', 'Nike', 'Adidas', 'Jordan', 'Puma', 'PlayStation', 'Nintendo', 'Xbox', 'Funko', 'Panini', 'Topps', 'Yu-Gi-Oh!', 'Lorcana', 'Apple', 'Samsung'];
+  let ocrW = null, lese = false;
+  async function ocrWorker() { if (ocrW) return ocrW; if (!window.Tesseract) await new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = OCR + 'tesseract.min.js'; sc.onload = ok; sc.onerror = no; document.head.append(sc); });
+    ocrW = await Tesseract.createWorker(['deu', 'eng'], 1, {workerPath: OCR + 'worker.min.js', corePath: OCR, langPath: OCR, workerBlobURL: true}); return ocrW; }
+  function sw(c) { const x = c.getContext('2d'), W2 = c.width, H2 = c.height, d = x.getImageData(0, 0, W2, H2), a = d.data, g = new Float32Array(W2 * H2), I = new Float64Array((W2 + 1) * (H2 + 1));
+    for (let i = 0; i < g.length; i++) g[i] = 0.299 * a[i * 4] + 0.587 * a[i * 4 + 1] + 0.114 * a[i * 4 + 2];
+    for (let y = 1; y <= H2; y++) { let r = 0; for (let k = 1; k <= W2; k++) { r += g[(y - 1) * W2 + k - 1]; I[y * (W2 + 1) + k] = I[(y - 1) * (W2 + 1) + k] + r; } }
+    const R = Math.max(8, Math.round(Math.min(W2, H2) / 40)); for (let y = 0; y < H2; y++) for (let k = 0; k < W2; k++) { const x0 = Math.max(0, k - R), x1 = Math.min(W2, k + R + 1), y0 = Math.max(0, y - R), y1 = Math.min(H2, y + R + 1);
+      const m = (I[y1 * (W2 + 1) + x1] - I[y0 * (W2 + 1) + x1] - I[y1 * (W2 + 1) + x0] + I[y0 * (W2 + 1) + x0]) / ((x1 - x0) * (y1 - y0)); const v = g[y * W2 + k] < m - 12 ? 0 : 255, j = (y * W2 + k) * 4; a[j] = a[j + 1] = a[j + 2] = v; } x.putImageData(d, 0, 0); return c; }
+  async function zeilenLesen(w, c, psm) { await w.setParameters({tessedit_pageseg_mode: psm}); const {data} = await w.recognize(c, {}, {text: true, blocks: true}); const Z = [];
+    (data.blocks || []).forEach(b => (b.paragraphs || []).forEach(pa => (pa.lines || []).forEach(l => { const ws = (l.words || []).filter(x => (x.confidence >= 45 && /[A-Za-zÄÖÜäöüß0-9]{2,}|^\d$/.test(x.text)) || (x.confidence >= 25 && /^\W*[A-ZÄÖÜ][a-zäöüß]{3,}\W*$/.test(x.text))); if (!ws.length) return;
+      const t = ws.map(x => x.text).join(' ').replace(/[^A-Za-zÄÖÜäöüßé0-9/&'.!\- ]/g, '').replace(/\s+/g, ' ').replace(/^[^A-Za-zÄÖÜäöüß0-9]+/, '').trim(); const cf = ws.reduce((s2, x) => s2 + x.confidence, 0) / ws.length;
+      const bu = (t.match(/[A-Za-zÄÖÜäöüß]/g) || []).length; if (bu >= 3 || (bu >= 2 && /\d/.test(t))) Z.push({t, cf, s: (l.bbox.y1 - l.bbox.y0) * cf * (1.3 - 0.6 * l.bbox.y0 / c.height)}); }))); return {Z, text: data.text || ''}; }
+  async function fotoLesen(blob) {
+    const w = await ocrWorker(); const bm = await createImageBitmap(blob); const f = Math.min(1600 / Math.max(bm.width, bm.height), 2); const leinwand = () => { const c = document.createElement('canvas'); c.width = Math.round(bm.width * f); c.height = Math.round(bm.height * f); c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height); return c; };
+    let r = await zeilenLesen(w, leinwand(), '11'); const JUNK = /©|illus|wizards|creatures|game ?freak|^(kp|hp)\s?\d+$|\bpcs\b|\bpzs\b|^\W*\d+\W*$/i; const gut = z => z.some(x => x.cf >= 70 && !JUNK.test(x.t) && x.t.replace(/[^A-Za-zÄÖÜäöüß]/g, '').length >= 4);
+    { const r2 = await zeilenLesen(w, sw(leinwand()), '11'); r = {Z: r.Z.concat(r2.Z), text: r.text + ' ' + r2.text}; if (!gut(r.Z)) { const r3 = await zeilenLesen(w, sw(leinwand()), '3'); r = {Z: r.Z.concat(r3.Z), text: r.text + ' ' + r3.text}; } }
+    const Z = r.Z, alles = Z.map(z => z.t).join(' ') + ' ' + r.text; Z.sort((a, z) => z.s - a.s); const N = Z.filter(z => !JUNK.test(z.t)); if (!N.length) return null;
+    const mre = m => new RegExp('\\b' + m.replace(/é/g, '[eé]').replace(/[!-]/g, '.?') + '\\b', 'i');
+    let name = N[0].t; if (MARKEN.some(m => mre(m).test(name)) && name.split(' ').length <= 3 && N[1] && !N[1].t.includes(name)) name = name + ' ' + N[1].t; name = name.split(' ').slice(0, 7).join(' ').slice(0, 45).trim();
+    const marke = MARKEN.find(m => mre(m).test(alles) && !mre(m).test(name)); const plattf = (alles.match(/\b(PS[1-5]|Xbox(?: Series [XS]| One)?|Nintendo Switch|Switch)\b/i) || [''])[0];
+    const nummer = (alles.match(/\b\d{1,3}\s?\/\s?\d{2,3}\b/) || [''])[0].replace(/\s/g, ''); const set = /lego/i.test(alles) ? (alles.match(/\b\d{4,6}\b/) || [''])[0] : '';
+    if (marke) name = marke + ' ' + name; [nummer, set, plattf].forEach(x => { if (x && !name.toLowerCase().includes(x.toLowerCase())) name += ' ' + x; });
+    const mg = alles.match(/\b(\d{1,3})\s?(x|stück|stk)\b/i); return {name: name.replace(/\s+/g, ' ').trim(), alles, menge: mg ? +mg[1] : 0}; }
+  async function autoErkennen(blob, force) { if (lese) return; lese = true; bau();
+    try { const r = await fotoLesen(blob); if (r && r.name && (force || !S.name.trim())) { if (force) S.auto = true; setzeName(r.name, r.alles); if (r.menge > 1) S.menge = r.menge; S.ki = true; sp(); toast('🤖 Erkannt: ' + r.name); } else if (!r || !r.name) toast('Kein Text erkannt – Namen bitte eintippen'); }
+    catch (x) { console.warn('Erkennung', x); toast('Erkennung gerade nicht möglich – Namen bitte eintippen'); } lese = false; bau(); }
   async function fotoLoeschen(id) { try { const d = await idb(); d.transaction('fotos', 'readwrite').objectStore('fotos').delete(String(id)); } catch (x) {} }
   function konfetti() { if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return; for (let i = 0; i < 14; i++) { const k = e('div', 'konf', ['🎉', '💸', '✨', '🔥'][i % 4]); k.style.left = '50%'; k.style.top = '55%'; k.style.setProperty('--x', (Math.random() * 300 - 150) + 'px'); k.style.setProperty('--y', (-Math.random() * 320 - 40) + 'px'); document.body.append(k); setTimeout(() => k.remove(), 1200); } }
   function toast(t) { let el = document.getElementById('pc-toast'); if (!el) { el = e('div', 'toast'); el.id = 'pc-toast'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); document.body.append(el); } el.textContent = t; el.classList.add('an'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('an'), 1800); try { navigator.vibrate && navigator.vibrate(15); } catch (x) {} }
@@ -286,17 +316,18 @@
     const b = e('section', 'box'); b.append(e('h2', '', 'Was verkaufst du?'), e('div', 'sub', 'Foto machen, Namen eintippen – den Rest wählt die App schon vor. Passt etwas nicht, einfach umtippen.'));
     const cam = e('label', 'cam'); const fi = e('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.setAttribute('capture', 'environment');
     cam.append(fi, svg(CAM), e('span', '', fotos.length ? 'Noch ein Foto' : 'Foto machen'), e('small', '', KAT[S.kat] ? KAT[S.kat].fotos : 'Gerne mehrere Fotos – Mängel extra'));
-    const neuFotos = async ev => { for (const f of [...(ev.target.files || [])].slice(0, 10 - fotos.length)) { fotos.push(await verkleinern(f, 1600, .82)); if (!S.bild) S.bild = (await verkleinern(f, 160, .7)).data; } fotoSpeichern(); sp(); bau(); };
+    const neuFotos = async ev => { let neuB = null; for (const f of [...(ev.target.files || [])].slice(0, 10 - fotos.length)) { const vf = await verkleinern(f, 1600, .82); fotos.push(vf); if (!neuB) neuB = vf.blob; if (!S.bild) S.bild = (await verkleinern(f, 160, .7)).data; } fotoSpeichern(); sp(); bau(); if (neuB && !S.name.trim()) autoErkennen(neuB); };
     fi.addEventListener('change', neuFotos);
     const gal = e('label', 'go leise'); gal.style.cursor = 'pointer'; const gi = e('input'); gi.type = 'file'; gi.accept = 'image/*'; gi.multiple = true; gi.style.display = 'none'; gi.addEventListener('change', neuFotos); gal.append(gi, '🖼 Aus Galerie wählen (mehrere)');
     b.append(cam, gal);
+    if (lese) b.append(e('div', 'arb', '🔎 Foto wird gelesen … beim ersten Mal ca. 10–20 Sekunden.')); else if (fotos.length) b.append(btn(S.name.trim() ? 'go leise' : 'go', S.name.trim() ? '🤖 Name neu vom Foto lesen' : '🤖 Foto erkennen', () => autoErkennen(fotos[0].blob, true)));
     if (fotos.length) { const g = e('div', 'fotos'); fotos.forEach((f, i) => { const d = e('div'); const im = e('img'); im.src = f.url; im.alt = 'Foto ' + (i + 1); d.append(im, btn('', '✕', () => { fotos.splice(i, 1); fotoSpeichern(); if (!fotos.length) S.bild = ''; sp(); bau(); })); g.append(d); }); b.append(g); b.append(e('div', 'm', fotos.length + ' Foto' + (fotos.length > 1 ? 's' : '') + ' gespeichert – bleiben auch nach dem Schließen.')); if (fotos.length < 3) b.append(e('div', 'm', '💡 Mit 3+ Fotos (vorne, hinten, Details) verkauft es sich schneller.')); }
     const ni = e('input'); ni.placeholder = 'z. B. Glurak 4/102, Force Attax LE7, Panini EM 2000'; ni.value = S.name; ni.autocomplete = 'off';
-    ni.addEventListener('change', () => { S.name = ni.value; const r = erkenne(S.name); if (r && (S.auto || !S.kat)) { if (S.kat !== r.k) { S.checks = []; S.extra = []; } S.kat = r.k; if (r.sp) S.spiel = r.sp; S.auto = true; } else if (!S.kat) { S.kat = 'sonst'; S.auto = true; } if (S.kat === 'tcg' && !S.spiel) S.spiel = 'pokemon'; sp(); bau(); });
+    ni.addEventListener('change', () => { setzeName(ni.value); sp(); bau(); });
     const mz = e('div', 'zwei'); const mi1 = e('input'); mi1.inputMode = 'numeric'; mi1.placeholder = 'Stück'; mi1.value = S.menge > 1 ? S.menge : ''; mi1.addEventListener('change', () => { S.menge = Math.max(1, Math.floor(zahl(mi1.value)) || 1); sp(); bau(); });
     const ek = e('input'); ek.inputMode = 'decimal'; ek.placeholder = 'Einkauf € (optional)'; ek.value = S.ek; ek.addEventListener('change', () => { S.ek = ek.value; sp(); });
     mz.append(mi1, ek);
-    b.append(e('div', 'lbl', 'Name'), ni, e('div', 'lbl', 'Menge · Einkaufspreis'), mz);
+    const nl = e('div', 'lbl', 'Name'); if (S.ki && S.name) nl.append(e('em', '', '🤖 vom Foto erkannt – kurz prüfen')); b.append(nl, ni, e('div', 'lbl', 'Menge · Einkaufspreis'), mz);
     ni.addEventListener('keydown', ev => { if (ev.key === 'Enter') ni.blur(); });
     if (fokus) { fokus = false; setTimeout(() => ni.focus(), 50); }
     const dop = S.name.trim() && H().find(x => x.id !== S.id && (x.s.name || '').trim().toLowerCase() === S.name.trim().toLowerCase());
@@ -315,7 +346,7 @@
       if (K.tipps) { const tp = e('div', 'tipp'); tp.append(e('b', '', 'So holst du am meisten raus')); const ul = e('ul'); K.tipps.forEach(x => ul.append(e('li', '', x))); tp.append(ul); b.append(tp); }
       const d = e('details'); d.append(e('summary', '', '🛡️ So zieht dich keiner ab')); const ul = e('ul'); K.schutz.concat(SCHUTZ_ALLE).forEach(x => ul.append(e('li', '', x))); d.append(ul); b.append(d);
     }
-    const wb = weiter('Weiter zum Vergleich →', 2, !(S.kat && S.name.trim())); b.append(wb); ni.addEventListener('input', () => { S.name = ni.value; sp(); wb.disabled = !S.name.trim(); });
+    const wb = weiter('Weiter zum Vergleich →', 2, !(S.kat && S.name.trim())); b.append(wb); ni.addEventListener('input', () => { S.name = ni.value; S.ki = false; sp(); wb.disabled = !S.name.trim(); });
     if (!S.kat) { const sz2 = e('div', 'tipp'); sz2.append(e('b', '', '📅 Gerade gefragt'), e('div', '', SAISON[new Date().getMonth()])); b.append(sz2); }
     if (S.name || fotos.length) b.append(btn('go leise', '↺ Neu anfangen', () => { if (S.name.trim()) merken(); S = neu(); fotos = []; fokus = true; sp(); bau(); }));
     root.append(b);
@@ -442,7 +473,7 @@
 
   function erinnerung() { const A = H(); const lh = A.filter(liegt).length; const ne = A.filter(x => (x.status || 'geprueft') === 'geprueft' && Date.now() - x.t > 3 * 864e5).length; if (!lh && !ne) return;
     root.append(btn('go leise', '⏰ ' + [lh ? lh + ' Ladenhüter' : '', ne ? ne + ' noch nicht eingestellt' : ''].filter(Boolean).join(' · ') + ' → ansehen', () => { filt = lh ? 'alt' : 'geprueft'; ansicht = 'verlauf'; bau(); })); }
-  function neuig() { if (lj('pc-neu', '') === 'v19') return; ls('pc-neu', 'v19'); const d = e('div', 'tipp'); d.append(e('b', '', '✨ Neu in v19'), e('div', '', 'Knöpfe reagieren beim ersten Tippen, Eingabefenster klappen jetzt auch in NoxRift, Backup als Text (per WhatsApp an dich selbst), Duplizieren nimmt die Fotos mit, „1.200“ wird richtig gelesen. Dazu: Hell/Dunkel ☀️, große Schrift A+, „Ich bin“, Wochenziel, LEGO & Figuren.'), btn('go leise', 'Alles klar', () => d.remove())); root.children[0] ? root.children[0].after(d) : root.append(d); }
+  function neuig() { if (lj('pc-neu', '') === 'v20') return; ls('pc-neu', 'v20'); const d = e('div', 'tipp'); d.append(e('b', '', '✨ Neu in v20'), e('div', '', '🤖 Foto rein – die App liest Name, Art und Kartennummer selbst vom Foto und trägt alles ein. Läuft direkt auf dem Handy, ohne Internet-Dienst. Einfach kurz prüfen und weiter.'), btn('go leise', 'Alles klar', () => d.remove())); root.children[0] ? root.children[0].after(d) : root.append(d); }
   function bau() {
     if (druck) { warte = true; clearTimeout(warteT); warteT = setTimeout(() => { druck = false; if (warte) { warte = false; bau(); } }, 700); return; } root.replaceChildren(); root.className = 'pc' + (hell ? ' hell' : '') + (gross ? ' gross' : ''); if (!window.dash) document.body.style.background = hell ? '#f5f6fa' : ''; kopf();
     if (ansicht === 'verlauf') verlauf();
