@@ -1,5 +1,5 @@
 /* © 2026 NOXRIFT – Manuel. Alle Rechte vorbehalten. Nutzung nur für das NoxRift-Team.
-   Preis-Check v15 – Profi-Design, neues Logo, alles vorausgewählt (änderbar), Arbeitsmodus für NoxRift-Konten,
+   Hustle-Radar v15 – Profi-Design, neues Logo, alles vorausgewählt (änderbar), Arbeitsmodus für NoxRift-Konten,
    neue Sammel-Kategorien: Magic, Star Wars Unlimited, Topps/Force Attax, Panini/Topps-Sticker & Alben.
    Eigene App (GitHub) und Bereich in NoxRift – dieselbe Datei. */
 (function () {
@@ -215,7 +215,7 @@
     let n = Math.min(L.length, 60); while (n > 0 && !ls('pc-verlauf', L.slice(0, n))) n--; }
 
   function kopf() {
-    const t = e('div', 'top'); const br = e('div', 'brand'); br.append(svg(LOGO)); const nm = e('div'); nm.append(e('b', '', 'PreisCheck'), e('small', '', 'BY NOXRIFT')); br.append(nm); t.append(br);
+    const t = e('div', 'top'); const br = e('div', 'brand'); br.append(svg(LOGO)); const nm = e('div'); nm.append(e('b', '', 'Hustle-Radar'), e('small', '', 'BY NOXRIFT')); br.append(nm); t.append(br);
     t.append(btn('pill', ansicht === 'verlauf' ? '← Zurück' : 'Verlauf', () => { ansicht = ansicht === 'verlauf' ? 'check' : 'verlauf'; bau(); }));
     root.append(t);
     const mo = e('div', 'modus'); [['arbeit', 'Arbeit für NoxRift'], ['privat', 'Privat']].forEach(([k, l]) => { const b = btn('', null, () => { modus = k; ls('pc-modus2', k); bau(); }); b.append(e('span', 'dot'), l); b.setAttribute('aria-pressed', String(modus === k)); mo.append(b); }); root.append(mo);
@@ -296,7 +296,7 @@
   }
   function datenschutz() {
     const b = e('section', 'box'); b.append(e('h2', '', 'Datenschutz & Nutzung'), e('div', 'sub', 'Stand: 12.11.2026'));
-    [['Wer steckt dahinter?', 'PreisCheck ist eine interne App von NOXRIFT (Manuel). Sie ist nur für das NoxRift-Team gedacht und mit einem Zugangscode geschützt.'],
+    [['Wer steckt dahinter?', 'Hustle-Radar ist eine interne App von NOXRIFT (Manuel). Sie ist nur für das NoxRift-Team gedacht und mit einem Zugangscode geschützt.'],
      ['Welche Daten?', 'Fotos, Artikelnamen, Zustand, Preise und dein Verlauf werden nur auf deinem Gerät gespeichert (im Browser-Speicher). Es gibt keinen eigenen Server, kein Konto, keine Cookies, kein Tracking und keine Werbung. Fotos verlassen dein Gerät nur, wenn du selbst auf „Teilen“ oder „An NoxRift schicken“ tippst.'],
      ['Hosting', 'Die App liegt bei GitHub Pages (GitHub Inc.). Beim Aufruf verarbeitet GitHub technisch nötige Daten wie deine IP-Adresse, um die Seite auszuliefern. Mehr dazu in der Datenschutzerklärung von GitHub.'],
      ['Andere Seiten', 'Links zu Vinted, eBay, Kleinanzeigen und Cardmarket öffnen deren Seiten bzw. Apps. Dort gelten deren eigene Datenschutzregeln. Die App liest nichts aus deinen Konten aus.'],
@@ -320,7 +320,7 @@
   const HASH = 'abb413b3292845daf4d0c821a9bfe9ef3df947cc24db886d46813b12d6bb2035';
   async function pruef(c) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('noxrift:' + c.trim())); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('') === HASH; }
   function sperre() {
-    root.replaceChildren(); const t = e('div', 'top'); const br = e('div', 'brand'); br.append(svg(LOGO)); const nm = e('div'); nm.append(e('b', '', 'PreisCheck'), e('small', '', 'BY NOXRIFT')); br.append(nm); t.append(br); root.append(t);
+    root.replaceChildren(); const t = e('div', 'top'); const br = e('div', 'brand'); br.append(svg(LOGO)); const nm = e('div'); nm.append(e('b', '', 'Hustle-Radar'), e('small', '', 'BY NOXRIFT')); br.append(nm); t.append(br); root.append(t);
     const c = e('section', 'box'); c.append(e('h2', '', 'Nur fürs Team'), e('div', 'sub', 'Bitte Zugangscode eingeben.'));
     const i = e('input'); i.type = 'password'; i.inputMode = 'numeric'; i.autocomplete = 'off'; i.placeholder = 'Zugangscode';
     const m = e('div'); const los = async () => { if (await pruef(i.value)) { ls('pc-zugang', HASH); bau(); } else m.replaceChildren(e('div', 'warn', 'Code falsch.')); };
