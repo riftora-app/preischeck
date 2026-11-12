@@ -21,7 +21,7 @@
 <button class="inst" id="inst" type="button">📲 Preis-Check als App installieren</button>
 <div class="ios" id="ios">📲 <b>Als App aufs iPhone:</b> unten auf <b>Teilen</b> (Quadrat mit Pfeil) tippen → <b>„Zum Home-Bildschirm“</b> → <b>„Hinzufügen“</b>.</div>
 <div id="pc-root"></div>
-<div class="fuss">Preis-Check v11 · Updates kommen automatisch · funktioniert auch offline</div>
+<div class="fuss">Preis-Check v12 · Updates kommen automatisch · funktioniert auch offline</div>
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js', {updateViaCache: 'none'}).then(r => { r.update(); addEventListener('visibilitychange', () => { if (!document.hidden) r.update(); }); }).catch(() => {});
