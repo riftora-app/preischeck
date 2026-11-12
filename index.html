@@ -5,23 +5,23 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="copyright" content="© 2026 NOXRIFT – Manuel. Alle Rechte vorbehalten.">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0e0b1f">
+<meta name="theme-color" content="#0b0d14">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Preis-Check">
+<meta name="apple-mobile-web-app-title" content="PreisCheck">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" href="icon-192.png">
-<title>Preis-Check</title>
-<style>body{margin:0;min-height:100vh;background-attachment:fixed;background:radial-gradient(900px 400px at 90% -10%,rgba(255,79,216,.22),transparent 60%),#0e0b1f;background-repeat:no-repeat;background-attachment:fixed;color:#eef2fb;padding:calc(14px + env(safe-area-inset-top)) 12px calc(40px + env(safe-area-inset-bottom))}
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<title>PreisCheck · NOXRIFT</title>
+<style>body{margin:0;min-height:100vh;background-attachment:fixed;background:radial-gradient(900px 400px at 90% -10%,rgba(124,92,255,.22),transparent 60%),#0b0d14;background-repeat:no-repeat;background-attachment:fixed;color:#eef2fb;padding:calc(14px + env(safe-area-inset-top)) 12px calc(40px + env(safe-area-inset-bottom))}
 .inst{max-width:640px;margin:0 auto 12px;display:none;border-radius:16px;padding:12px 14px;background:#22c55e;color:#052e16;font:700 15px system-ui,sans-serif;text-align:center;cursor:pointer;border:none;width:100%}
 .ios{max-width:640px;margin:0 auto 12px;display:none;border-radius:16px;padding:12px 14px;background:#1c2540;border:1px solid #2b3655;font:14px/1.45 system-ui,sans-serif}
 .fuss{max-width:640px;margin:14px auto 0;text-align:center;color:#94a0bd;font:12px system-ui,sans-serif}</style>
 </head>
 <body>
-<button class="inst" id="inst" type="button">📲 Preis-Check als App installieren</button>
+<button class="inst" id="inst" type="button">📲 PreisCheck als App installieren</button>
 <div class="ios" id="ios">📲 <b>Als App aufs iPhone:</b> unten auf <b>Teilen</b> (Quadrat mit Pfeil) tippen → <b>„Zum Home-Bildschirm“</b> → <b>„Hinzufügen“</b>.</div>
 <div id="pc-root"></div>
-<div class="fuss">Preis-Check v14 · Updates kommen automatisch · funktioniert auch offline</div>
+<div class="fuss">PreisCheck v15 · Updates kommen automatisch · funktioniert auch offline</div>
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js', {updateViaCache: 'none'}).then(r => { r.update(); addEventListener('visibilitychange', () => { if (!document.hidden) r.update(); }); }).catch(() => {});
