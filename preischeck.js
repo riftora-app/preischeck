@@ -1,5 +1,5 @@
 /* © 2026 NOXRIFT – Manuel. Alle Rechte vorbehalten. Nutzung nur für das NoxRift-Team.
-   Hustle-Radar v16 – Runde 1 (Fotos bleiben, Median-Preise, Gewinnrechner, Verlauf mit Status & Statistik …), Profi-Design, neues Logo, alles vorausgewählt (änderbar), Arbeitsmodus für NoxRift-Konten,
+   Hustle-Radar v17 – Runde 2 (Verhandeln, Käufer-Antworten, Ladenhüter, Bündel …), Runde 1 (Fotos bleiben, Median-Preise, Gewinnrechner, Verlauf mit Status & Statistik …), Profi-Design, neues Logo, alles vorausgewählt (änderbar), Arbeitsmodus für NoxRift-Konten,
    neue Sammel-Kategorien: Magic, Star Wars Unlimited, Topps/Force Attax, Panini/Topps-Sticker & Alben.
    Eigene App (GitHub) und Bereich in NoxRift – dieselbe Datei. */
 (function () {
@@ -176,6 +176,9 @@
       checks: [['ovp', 'Neu, originalverpackt', 0, 'originalverpackt'], ['leicht', 'Leichte Gebrauchsspuren', 3, 'leichte Gebrauchsspuren'], ['deutlich', 'Deutliche Spuren / Teildefekt', 4, 'deutliche Gebrauchsspuren']],
       extra: ['funktioniert', 'vollständig', 'OVP'], schutz: []}
   };
+  const VERSAND = {tcg: 'Karte in Hülle + Toploader, zwischen Pappe. Günstig als Brief – ab ca. 25 € mit Sendungsverfolgung.', sticker: 'Sticker in Hülle + Pappe als Brief. Alben gut gepolstert als Päckchen.', spiel: 'In Luftpolster-Umschlag oder Karton, mit Sendungsverfolgung.', schuhe: 'Im Schuhkarton, dann in einen Versandkarton – als Paket.', kleidung: 'Gefaltet in einen Versandbeutel, meist reicht ein Päckchen.', schmuck: 'Im Schmuckkästchen, gut gepolstert. Ab 50 € versichert.', technik: 'Gut gepolstert im Karton, versichert und mit Sendungsverfolgung.', sonst: 'Je nach Größe Päckchen oder Paket, gut gepolstert.'};
+  VERSAND.topps = VERSAND.tcg;
+  const ANTWORT = [['👋 Noch da?', 'Hi! Ja, ist noch da 😊 Du kannst direkt kaufen, ich verschicke schnell.'], ['🔒 Preis fix', 'Hi! Der Preis ist schon knapp kalkuliert, weiter runter geht leider nicht. Danke für dein Verständnis!'], ['🧺 Bündel', 'Wenn du noch etwas aus meinem Profil dazu nimmst, mache ich dir gern einen Bündelpreis 🙂'], ['📦 Versand', 'Ich verschicke innerhalb von 1–2 Werktagen, gut verpackt und mit Sendungsverfolgung.'], ['📸 Mehr Fotos', 'Klar, ich schicke dir gleich noch mehr Fotos von allen Seiten.'], ['🙏 Danke', 'Danke für deinen Kauf! Das Paket geht schnell raus. Über eine Bewertung freue ich mich 🙏']];
   const SCHUTZ_ALLE = ['Nur über die Plattform bezahlen lassen – nie PayPal „Freunde“, nie Links oder Codes von Käufern anklicken.', 'Verpacken kurz filmen (Artikel → Paket → Etikett) – Beweis gegen „Paket war leer“.'];
 
   /* Automatische Erkennung aus dem Namen (alles bleibt änderbar) */
@@ -191,9 +194,10 @@
     [/trikot|hoodie|jacke|shirt|jeans|hose|pullover|kleid|mantel|cap\b|mütze/i, 'kleidung']];
   function erkenne(n) { for (const [re, k, sp] of ERKENNUNG) if (re.test(n)) return {k, sp}; return null; }
 
-  const neu = () => ({id: Date.now(), kat: '', spiel: '', checks: [], extra: [], name: '', maengel: '', preise: {}, bild: '', auto: true, ek: '', versand: '', menge: 1, tempo: 'max', status: 'geprueft', vk: ''});
+  const neu = () => ({id: Date.now(), kat: '', spiel: '', checks: [], extra: [], name: '', maengel: '', preise: {}, bild: '', auto: true, ek: '', versand: '', menge: 1, tempo: 'max', status: 'geprueft', vk: '', groesse: '', vb: false, schmerz: '', check: [], seit: 0, vt: 0});
   let S = Object.assign(neu(), lj('pc-s15', {})), fotos = [], schritt = lj('pc-step', 1), ansicht = 'check', modus = lj('pc-modus2', 'arbeit');
   const arbeit = () => modus === 'arbeit';
+  let fokus = false;
   const sp = () => { ls('pc-s15', S); ls('pc-step', schritt); };
   const root = document.getElementById('pc-root'); if (!root) return; root.className = 'pc';
 
@@ -203,19 +207,20 @@
   function titel() { const n = S.name.trim(); if (!n) return ''; const Z = zustand(); const K = KAT[S.kat] || {}; const m = Math.max(1, +S.menge || 1);
     const zusatz = K.kurz && S.extra.length ? ' ' + S.extra.filter(x => !/gegradet|Komplettset/.test(x)).join(' ') : '';
     const sp = K.spiele && S.spiel && !new RegExp(SPIELE[S.spiel][0].split(' ')[0], 'i').test(n) ? ' ' + SPIELE[S.spiel][0] : '';
-    const t = (m > 1 ? m + 'x ' : '') + n + sp + zusatz + (Z ? ' – ' + Z.kurz : ''); return t.length > 80 ? t.slice(0, 79) + '…' : t; }
+    const gr = S.groesse && /schuhe|kleidung/.test(S.kat) ? ' Gr. ' + S.groesse.trim() : ''; const t = (m > 1 ? m + 'x ' : '') + n + sp + zusatz + gr + (Z ? ' – ' + Z.kurz : ''); return t.length > 80 ? t.slice(0, 79) + '…' : t; }
   function beschreibung(pf) { const n = S.name.trim(); if (!n) return ''; const Z = zustand(); const m = S.maengel.trim(); const anz = Math.max(1, +S.menge || 1);
     return ['Weitere Artikel in meinem Profil – gern kombinieren!', '', (anz > 1 ? anz + ' Stück: ' : '') + n + (Z ? ' im Zustand „' + Z.txt + '“.' : '.'),
       (Z && Z.punkte.length ? 'Zustand im Detail: ' + Z.punkte.join(', ') + '.' : 'Keine bekannten Mängel, siehe Fotos.') + (m ? ' ' + m.replace(/\.?$/, '.') : ''),
-      S.extra.length ? 'Dabei/geprüft: ' + S.extra.join(', ') + '.' : null, '',
+      S.groesse && /schuhe|kleidung/.test(S.kat) ? 'Größe: ' + S.groesse.trim() + '.' : null, S.extra.length ? 'Dabei/geprüft: ' + S.extra.join(', ') + '.' : null, '',
       pf === 'kleinanzeigen' ? 'Abholung oder Versand möglich (Versandkosten trägt der Käufer).' : 'Versand schnell und sicher verpackt.',
-      'Privatverkauf, daher keine Garantie oder Rücknahme.', pf === 'vinted' && hashtags() ? '\n' + hashtags() : null].filter(x => x !== null).join('\n'); }
+      pf === 'kleinanzeigen' && S.vb ? 'Preis ist VB – mach mir gern ein Angebot.' : null, 'Privatverkauf, daher keine Garantie oder Rücknahme.', lj('pc-sig', '') || null, pf === 'vinted' && hashtags() ? '\n' + hashtags() : null].filter(x => x !== null).join('\n'); }
   function hashtags() { const K = KAT[S.kat] || {}; const w = S.name.toLowerCase().replace(/[^a-z0-9äöüß ]/g, ' ').split(/\s+/).filter(x => x.length > 2 && !/^\d+$/.test(x)).slice(0, 4);
     const b = {tcg: [(SPIELE[S.spiel] || ['karten'])[0].toLowerCase().replace(/[^a-z]/g, ''), 'sammelkarten', 'tcg'], topps: ['topps', 'starwars', 'sammelkarten'], sticker: ['panini', 'stickeralbum', 'sammeln'], spiel: ['videospiel', 'gaming'], schuhe: ['sneaker'], kleidung: ['fashion'], schmuck: ['schmuck'], technik: ['technik']}[S.kat] || [];
     return [...new Set(w.concat(b))].slice(0, 7).map(x => '#' + x).join(' '); }
   const werte = v => String(v || '').split(/[;\s/|]+|,(?=\s)/).map(x => +x.replace(',', '.')).filter(x => x > 0);
   const median = a => { const b = a.slice().sort((x, y) => x - y); const m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
   const TEMPO = {max: ['Maximal', 1.05], fair: ['Fair', 1], schnell: ['Schnell', 0.92]};
+  const runter = v => Math.max(0.99, v < 5 ? Math.floor(v * 2) / 2 - 0.01 : Math.floor(v) - 0.01);
   const schoen = v => v < 5 ? Math.round(v * 2) / 2 - 0.01 : v < 50 ? Math.ceil(v) - 0.01 : Math.ceil(v / 5) * 5 - 0.01;
   function empf(id) { const w = werte(S.preise[id]); if (!w.length) return null; const pr = median(w); const f = (TEMPO[S.tempo] || TEMPO.max)[1];
     const start = Math.max(0.99, schoen(pr * f)); const n = Math.max(1, +S.menge || 1); const netto = start * (1 - P[id].fee / 100);
@@ -257,7 +262,7 @@
     fi.addEventListener('change', neuFotos);
     const gal = e('label', 'go leise'); gal.style.cursor = 'pointer'; const gi = e('input'); gi.type = 'file'; gi.accept = 'image/*'; gi.multiple = true; gi.style.display = 'none'; gi.addEventListener('change', neuFotos); gal.append(gi, '🖼 Aus Galerie wählen (mehrere)');
     b.append(cam, gal);
-    if (fotos.length) { const g = e('div', 'fotos'); fotos.forEach((f, i) => { const d = e('div'); const im = e('img'); im.src = f.url; im.alt = 'Foto ' + (i + 1); d.append(im, btn('', '✕', () => { fotos.splice(i, 1); fotoSpeichern(); if (!fotos.length) S.bild = ''; sp(); bau(); })); g.append(d); }); b.append(g); b.append(e('div', 'm', fotos.length + ' Foto' + (fotos.length > 1 ? 's' : '') + ' gespeichert – bleiben auch nach dem Schließen.')); }
+    if (fotos.length) { const g = e('div', 'fotos'); fotos.forEach((f, i) => { const d = e('div'); const im = e('img'); im.src = f.url; im.alt = 'Foto ' + (i + 1); d.append(im, btn('', '✕', () => { fotos.splice(i, 1); fotoSpeichern(); if (!fotos.length) S.bild = ''; sp(); bau(); })); g.append(d); }); b.append(g); b.append(e('div', 'm', fotos.length + ' Foto' + (fotos.length > 1 ? 's' : '') + ' gespeichert – bleiben auch nach dem Schließen.')); if (fotos.length < 3) b.append(e('div', 'm', '💡 Mit 3+ Fotos (vorne, hinten, Details) verkauft es sich schneller.')); }
     const ni = e('input'); ni.placeholder = 'z. B. Glurak 4/102, Force Attax LE7, Panini EM 2000'; ni.value = S.name; ni.autocomplete = 'off';
     ni.addEventListener('change', () => { S.name = ni.value; const r = erkenne(S.name); if (r && (S.auto || !S.kat)) { if (S.kat !== r.k) { S.checks = []; S.extra = []; } S.kat = r.k; if (r.sp) S.spiel = r.sp; S.auto = true; } else if (!S.kat) { S.kat = 'sonst'; S.auto = true; } if (S.kat === 'tcg' && !S.spiel) S.spiel = 'pokemon'; sp(); bau(); });
     const mz = e('div', 'zwei'); const mi1 = e('input'); mi1.inputMode = 'numeric'; mi1.placeholder = 'Stück'; mi1.value = S.menge > 1 ? S.menge : ''; mi1.addEventListener('change', () => { S.menge = Math.max(1, Math.floor(zahl(mi1.value)) || 1); sp(); bau(); });
@@ -265,11 +270,15 @@
     mz.append(mi1, ek);
     b.append(e('div', 'lbl', 'Name'), ni, e('div', 'lbl', 'Menge · Einkaufspreis'), mz);
     ni.addEventListener('keydown', ev => { if (ev.key === 'Enter') ni.blur(); });
+    if (fokus) { fokus = false; setTimeout(() => ni.focus(), 50); }
+    const dop = S.name.trim() && H().find(x => x.id !== S.id && (x.s.name || '').trim().toLowerCase() === S.name.trim().toLowerCase());
+    if (dop) b.append(e('div', 'arb', '👀 Schon am ' + datum(dop.t) + ' geprüft' + (dop.preis ? ' – damals ' + eur(dop.preis) : '') + '. Im Verlauf mit ⧉ kopieren.'));
     const kl = e('div', 'lbl', 'Art'); if (S.kat && S.auto) kl.append(e('em', '', 'automatisch erkannt')); b.append(kl);
     const k = e('div', 'kats'); Object.entries(KAT).forEach(([id, K]) => { const x = btn(); x.setAttribute('aria-pressed', String(S.kat === id)); x.append(e('span', 'e', K.e), e('span', '', K.l)); x.addEventListener('click', () => { if (S.kat !== id) { S.checks = []; S.extra = []; } S.kat = id; S.auto = false; if (id === 'tcg' && !S.spiel) S.spiel = 'pokemon'; sp(); bau(); }); k.append(x); }); b.append(k);
     const K = KAT[S.kat];
     if (K) {
       if (K.spiele) { const g = e('div', 'seg'); Object.entries(SPIELE).forEach(([id, [l]]) => { const x = btn('', l, () => { S.spiel = id; sp(); bau(); }); x.setAttribute('aria-pressed', String(S.spiel === id)); g.append(x); }); b.append(e('div', 'lbl', 'Spiel'), g); }
+      if (/schuhe|kleidung/.test(S.kat)) { const gi2 = e('input'); gi2.placeholder = S.kat === 'schuhe' ? 'Größe, z. B. 43 oder 9.5 US' : 'Größe, z. B. M oder 38'; gi2.value = S.groesse; gi2.addEventListener('change', () => { S.groesse = gi2.value; sp(); }); b.append(e('div', 'lbl', 'Größe (kommt in den Titel)'), gi2); }
       const zl = e('div', 'lbl', 'Zustand – tipp an, was zutrifft'); b.append(zl);
       const c = e('div', 'chk'); K.checks.forEach(([id, txt]) => { const on = S.checks.includes(id); const x = btn(); x.setAttribute('aria-pressed', String(on)); x.append(e('span', 'x', on ? '✓' : ''), e('span', '', txt)); x.addEventListener('click', () => { S.checks = on ? S.checks.filter(y => y !== id) : S.checks.concat(id); sp(); bau(); }); c.append(x); }); b.append(c);
       const Z = zustand(); const n = e('div', 'note'); n.append(e('span', '', S.checks.length ? 'Bewertung' : 'Vorauswahl'), e('b', '', Z.txt)); b.append(n);
@@ -294,10 +303,12 @@
     const b = e('section', 'box'); b.append(e('h2', '', 'Dein Anzeigentext'), e('div', 'sub', 'Fertig formuliert – je Plattform passend. Nur noch kopieren.'));
     const T = titel(); const g = e('div', 'seg'); plats().filter(x => x !== 'cardmarket').forEach(id => { const x = btn('', P[id].l, () => { pfText = id; bau(); }); x.setAttribute('aria-pressed', String(pfText === id)); g.append(x); }); b.append(g);
     if (!plats().includes(pfText)) pfText = plats().find(x => x !== 'cardmarket') || 'vinted';
+    if (pfText === 'kleinanzeigen') { const vb = btn('', 'Preis VB (Verhandlungsbasis)', () => { S.vb = !S.vb; sp(); bau(); }); vb.setAttribute('aria-pressed', String(!!S.vb)); const w = e('div', 'seg'); w.append(vb); b.append(w); }
     const B = beschreibung(pfText);
     const f1 = e('div', 'feld'); const tl = e('div', 'lbl', 'Titel'); tl.append(e('em', '', T.length + '/80 Zeichen')); f1.append(tl, e('div', 'v', T), kBtn('Titel kopieren', T));
     const f2 = e('div', 'feld'); f2.append(e('div', 'lbl', 'Beschreibung · ' + P[pfText].l), e('div', 'v', B), kBtn('Beschreibung kopieren', B)); b.append(f1, f2);
     const best = bester(); b.append(kBtn('📋 Alles auf einmal kopieren', () => T + '\n\n' + B + (best ? '\n\nPreis: ' + eur(best.x.start) : ''), 'leise'));
+    const sg = e('details'); if (lj('pc-sig', '')) sg.open = true; sg.append(e('summary', '', '✍️ Eigener Satz unter jeder Beschreibung')); const st2 = e('textarea'); st2.placeholder = 'z. B. Schau gern in mein Profil – ich verschicke immer am nächsten Tag!'; st2.value = lj('pc-sig', ''); st2.style.marginTop = '8px'; st2.addEventListener('change', () => { ls('pc-sig', st2.value.trim()); bau(); toast('Gespeichert'); }); sg.append(st2); b.append(sg);
     b.append(weiter('Weiter zum Preis →', 4)); root.append(b);
   }
   function s4() {
@@ -310,39 +321,62 @@
       d.append(e('div', 'm', (x.n > 1 ? 'Median aus ' + x.n + ' Verkäufen: ' : 'Zuletzt verkauft für ') + eur(x.pr) + ' · nie unter ' + eur(x.min) + (p.fee ? ' · ' + p.fee + ' % Gebühr' : '') + (x.stueck ? ' · ' + eur(x.stueck) + ' pro Stück' : '')));
       if (zahl(S.ek) || zahl(S.versand)) d.append(e('div', x.gewinn >= 0 ? 'gew' : 'warn', (x.gewinn >= 0 ? '💰 Gewinn ca. ' : '⚠️ Verlust ca. ') + eur(Math.abs(x.gewinn)) + ' nach Einkauf' + (zahl(S.versand) ? ' und Versand' : '')));
       const z = e('div', 'zwei'); z.append(kBtn('Preis kopieren', String(x.start.toFixed(2)).replace('.', ','), 'leise'));
-      const a = e('a', 'go' + (best.id === id ? '' : ' leise'), 'Einstellen' + (konto[id] ? ' als ' + konto[id] : (arbeit() ? ' (NoxRift)' : '')) + ' ↗'); a.href = p.neu; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', () => { if (T) kopiere(T); S.status = 'eingestellt'; S.plat = id; merken(); toast('Titel kopiert – jetzt einfügen'); }); z.append(a); d.append(z); b.append(d); });
+      const a = e('a', 'go' + (best.id === id ? '' : ' leise'), 'Einstellen' + (konto[id] ? ' als ' + konto[id] : (arbeit() ? ' (NoxRift)' : '')) + ' ↗'); a.href = p.neu; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', () => { if (T) kopiere(T); S.status = 'eingestellt'; S.plat = id; if (!S.seit) S.seit = Date.now(); merken(); toast('Titel kopiert – jetzt einfügen'); }); z.append(a); d.append(z); b.append(d); });
     const vs = e('input'); vs.inputMode = 'decimal'; vs.placeholder = 'Versand zahlst du selbst? € (optional)'; vs.value = S.versand; vs.addEventListener('change', () => { S.versand = vs.value; sp(); bau(); }); b.append(vs);
+    const VT = VERSAND[S.kat]; if (VT) { const tv = e('div', 'tipp'); tv.append(e('b', '', '📦 So verschickst du es'), e('div', '', VT)); b.append(tv); }
+    const vh = e('div', 'feld'); vh.append(e('div', 'lbl', '🤝 Käufer macht ein Angebot?'));
+    const sz = e('div', 'zwei'); const sm = e('input'); sm.inputMode = 'decimal'; sm.placeholder = 'Grenze ' + eur(best.x.min); sm.value = S.schmerz; sm.title = 'Deine Schmerzgrenze';
+    const an = e('input'); an.inputMode = 'decimal'; an.placeholder = 'Käufer bietet €'; sz.append(sm, an); const erg = e('div'); erg.style.display = 'grid'; erg.style.gap = '8px'; vh.append(sz, erg);
+    const rech = () => { erg.replaceChildren(); const a = zahl(an.value); if (!a) return; const p = best.x.start, g = zahl(S.schmerz) || best.x.min; let typ, txt, antw;
+      if (a >= p * 0.95) { typ = 'gew'; txt = '✅ Annehmen – das ist fast dein Preis.'; antw = 'Hi! Passt, ' + eur(a) + ' ist okay 😊 Schick mir gern das Angebot, dann geht es schnell raus.'; }
+      else { const ga = Math.min(p, Math.max(g, schoen((a + p) / 2))); typ = a >= g ? 'arb' : 'warn'; txt = (a >= g ? '🤝 Gegenangebot: ' : '❌ Unter deiner Grenze – Gegenangebot: ') + eur(ga); antw = 'Hi! ' + eur(a) + ' ist mir leider zu wenig. Für ' + eur(ga) + ' würde ich es dir geben – passt das?'; }
+      erg.append(e('div', typ, txt), kBtn('Antwort kopieren', antw, 'leise')); };
+    sm.addEventListener('change', () => { S.schmerz = sm.value; sp(); rech(); }); an.addEventListener('input', rech); b.append(vh);
+    const ka = e('details'); ka.append(e('summary', '', '💬 Fertige Antworten für Käufer')); const kg = e('div', 'zwei'); kg.style.marginTop = '8px'; ANTWORT.forEach(([l, t]) => kg.append(kBtn(l, t, 'leise'))); ka.append(kg); b.append(ka);
+    const cl = e('div', 'chk'); [['fotos', 'Fotos von allen Seiten + Mängel'], ['text', 'Titel und Text eingefügt'], ['preis', 'Preis eingetragen'], ['pack', 'Verpackung liegt bereit']].forEach(([id, l]) => { const on = (S.check || []).includes(id); const x = btn(); x.setAttribute('aria-pressed', String(on)); x.append(e('span', 'x', on ? '✓' : ''), e('span', '', l)); x.addEventListener('click', () => { S.check = on ? S.check.filter(y => y !== id) : (S.check || []).concat(id); sp(); bau(); }); cl.append(x); }); b.append(e('div', 'lbl', 'Checkliste vor dem Einstellen'), cl);
     if (best.x.start >= 50) b.append(e('div', 'arb', best.x.start >= 150 && /tcg|topps/.test(S.kat) ? '💎 Hoher Wert: über Grading (PSA/CGC) nachdenken und nur versichert versenden.' : '📦 Ab 50 € nur versichert und mit Sendungsverfolgung versenden.'));
     if (arbeit()) { b.append(e('div', 'arb', 'Arbeitsmodus: Diese Anzeige ist für die NoxRift-Konten. Schick sie an Manu – oder stell sie direkt ein, wenn auf diesem Gerät das NoxRift-Konto angemeldet ist.')); b.append(btn('go vio', 'An NoxRift (Manu) schicken', schicken)); }
     b.append(e('div', 'm', '„Einstellen“ öffnet das Konto, das auf diesem Gerät angemeldet ist (am Handy direkt die App), kopiert den Titel und markiert den Artikel im Verlauf als „eingestellt“.'));
-    b.append(btn('go leise', '+ Nächster Artikel', async () => { merken(); S = neu(); fotos = []; schritt = 1; sp(); bau(); window.scrollTo && window.scrollTo({top: 0, behavior: 'smooth'}); }));
+    b.append(btn('go leise', '📤 Anzeige teilen', async () => { const t = titel() + '\n\n' + beschreibung(best.id) + '\n\nPreis: ' + eur(best.x.start); try { if (navigator.share) { await navigator.share({text: t}); return; } } catch (x) { if (x && x.name === 'AbortError') return; } await kopiere(t); toast('✓ Kopiert'); }));
+    const naechst = gleich => { merken(); const alt = S; S = neu(); if (gleich) { S.kat = alt.kat; S.spiel = alt.spiel; S.auto = false; } fotos = []; schritt = 1; fokus = true; sp(); bau(); window.scrollTo && window.scrollTo({top: 0, behavior: 'smooth'}); };
+    const nx = e('div', 'zwei'); nx.append(btn('go leise', '+ Nächster Artikel', () => naechst(false)), btn('go leise', '+ Gleiche Art nochmal', () => naechst(true))); b.append(nx);
     root.append(b);
   }
   async function schicken() { merken(); const best = bester(); const txt = ['📦 NOXRIFT-ANZEIGE', '', 'TITEL: ' + titel(), '', 'BESCHREIBUNG:', beschreibung(), '', 'PREIS: ' + (best ? eur(best.x.start) + ' auf ' + P[best.id].l + ' (nie unter ' + eur(best.x.min) + ')' : '–')].join('\n');
     await kopiere(txt); const files = fotos.map((f, i) => new File([f.blob], 'noxrift-' + (i + 1) + '.jpg', {type: 'image/jpeg'}));
     try { if (files.length && navigator.canShare && navigator.canShare({files})) { await navigator.share({files, text: txt}); return; } if (navigator.share) { await navigator.share({text: txt}); return; } } catch (x) { if (x && x.name === 'AbortError') return; }
     window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank', 'noopener'); }
-  let suche = '', filt = 'alle', weg = null;
+  let suche = '', filt = 'alle', weg = null, sortier = 'neu', buendel = null;
+  const liegt = x => x.status === 'eingestellt' && x.s.seit && Date.now() - x.s.seit >= 7 * 864e5;
   const STAT = {geprueft: '🔍 Geprüft', eingestellt: '📤 Eingestellt', verkauft: '✅ Verkauft'};
   function verlauf() {
     const b = e('section', 'box'); b.append(e('h2', '', 'Verlauf'), e('div', 'sub', 'Antippen öffnet den Artikel wieder. Gespeichert auf diesem Gerät.'));
     const A = H(); const vk = A.filter(x => x.status === 'verkauft'); const ums = vk.reduce((s, x) => s + (zahl(x.vk) || x.preis || 0), 0);
+    const gew = ums - vk.reduce((s, x) => s + zahl(x.s.ek) + zahl(x.s.versand), 0);
     const abw = vk.filter(x => zahl(x.vk) && x.preis).map(x => (zahl(x.vk) - x.preis) / x.preis * 100);
-    const kz = e('div', 'kz'); [['Geprüft', A.length], ['Eingestellt', A.filter(x => x.status === 'eingestellt').length], ['Verkauft', vk.length], ['Umsatz', eur(ums)], ['Ø vs. Empfehlung', abw.length ? (abw.reduce((s, x) => s + x, 0) / abw.length >= 0 ? '+' : '') + Math.round(abw.reduce((s, x) => s + x, 0) / abw.length) + ' %' : '–']].forEach(([l, v]) => { const d = e('div'); d.append(e('b', '', String(v)), e('span', '', l)); kz.append(d); }); b.append(kz);
+    const kz = e('div', 'kz'); [['Geprüft', A.length], ['Eingestellt', A.filter(x => x.status === 'eingestellt').length], ['Verkauft', vk.length], ['Umsatz', eur(ums)], ['Gewinn', eur(gew)], ['Diese Woche', vk.filter(x => x.s.vt && Date.now() - x.s.vt < 7 * 864e5).length + ' verkauft'], ['Ladenhüter', A.filter(liegt).length], ['Ø vs. Empfehlung', abw.length ? (abw.reduce((s, x) => s + x, 0) / abw.length >= 0 ? '+' : '') + Math.round(abw.reduce((s, x) => s + x, 0) / abw.length) + ' %' : '–']].forEach(([l, v]) => { const d = e('div'); d.append(e('b', '', String(v)), e('span', '', l)); kz.append(d); }); b.append(kz);
     const si = e('input'); si.placeholder = '🔎 Suchen …'; si.value = suche; si.addEventListener('input', () => { suche = si.value; zeige(); }); b.append(si);
-    const fg = e('div', 'seg'); [['alle', 'Alle'], ['geprueft', 'Geprüft'], ['eingestellt', 'Eingestellt'], ['verkauft', 'Verkauft'], ['job', 'NoxRift'], ['privat', 'Privat']].forEach(([k, l]) => { const x = btn('', l, () => { filt = k; bau(); }); x.setAttribute('aria-pressed', String(filt === k)); fg.append(x); }); b.append(fg);
+    const fg = e('div', 'seg'); [['alle', 'Alle'], ['geprueft', 'Geprüft'], ['eingestellt', 'Eingestellt'], ['verkauft', 'Verkauft'], ['alt', '⏰ Ladenhüter'], ['job', 'NoxRift'], ['privat', 'Privat']].forEach(([k, l]) => { const x = btn('', l, () => { filt = k; bau(); }); x.setAttribute('aria-pressed', String(filt === k)); fg.append(x); }); b.append(fg);
+    const so = e('div', 'seg'); [['neu', 'Neueste'], ['alt', 'Älteste'], ['preis', 'Höchster Preis']].forEach(([k, l]) => { const x = btn('', '↕ ' + l, () => { sortier = k; bau(); }); x.setAttribute('aria-pressed', String(sortier === k)); so.append(x); }); b.append(so);
+    b.append(btn('go leise', buendel ? '✕ Bündel beenden' : '🧺 Bündel schnüren (mehrere zusammen verkaufen)', () => { buendel = buendel ? null : new Set(); bau(); }));
+    const kb = e('div'); b.append(kb);
     const l = e('div', 'hist'); b.append(l);
+    function kasse() { kb.replaceChildren(); if (!buendel) return; const W = H().filter(x => buendel.has(x.id)); if (!W.length) { kb.append(e('div', 'arb', 'Tippe die Artikel an, die zusammen weg sollen.')); return; } const su = W.reduce((s, x) => s + (x.preis || 0), 0); const bp = runter(su * 0.85);
+      const f = e('div', 'feld'); f.append(e('div', 'lbl', W.length + ' Artikel · einzeln ' + eur(su)), e('div', 'v', 'Bündelpreis: ' + eur(bp) + ' (−15 %)'), kBtn('Bündel-Text kopieren', '🧺 Bündel-Angebot:\n' + W.map(x => '• ' + x.titel + (x.preis ? ' (' + eur(x.preis) + ')' : '')).join('\n') + '\n\nZusammen statt ' + eur(su) + ' nur ' + eur(bp) + '!')); kb.append(f); }
     function zeige() { l.replaceChildren(); const q = suche.toLowerCase();
-      const L = A.filter(x => (!q || (x.titel || x.s.name || '').toLowerCase().includes(q)) && (filt === 'alle' || (filt === 'job' ? x.job : filt === 'privat' ? !x.job : (x.status || 'geprueft') === filt)));
+      const L = A.filter(x => (!q || (x.titel || x.s.name || '').toLowerCase().includes(q)) && (filt === 'alle' || (filt === 'job' ? x.job : filt === 'privat' ? !x.job : filt === 'alt' ? liegt(x) : (x.status || 'geprueft') === filt)));
+      if (sortier === 'alt') L.reverse(); else if (sortier === 'preis') L.sort((a, c) => (c.preis || 0) - (a.preis || 0));
       if (!L.length) l.append(e('div', 'm', A.length ? 'Nichts gefunden.' : 'Noch nichts geprüft.'));
-      L.forEach(x => { const it = e('div', 'it'); it.setAttribute('role', 'button'); it.tabIndex = 0; const im = x.s.bild ? Object.assign(e('img'), {src: x.s.bild, alt: ''}) : e('div', 'ph', (KAT[x.s.kat] || KAT.sonst).e);
+      L.forEach(x => { const it = e('div', 'it'); if (buendel && buendel.has(x.id)) it.style.outline = '2px solid var(--acc)'; it.setAttribute('role', 'button'); it.tabIndex = 0; const im = x.s.bild ? Object.assign(e('img'), {src: x.s.bild, alt: ''}) : e('div', 'ph', (KAT[x.s.kat] || KAT.sonst).e);
         const m = e('div'); m.style.minWidth = '0'; m.append(e('div', 't', x.titel || x.s.name), e('div', 'm', datum(x.t) + (x.job ? ' · NoxRift' : ' · Privat') + (x.plat ? ' · ' + P[x.plat].l : '')));
-        const st = btn('stat', STAT[x.status || 'geprueft'], ev => { ev.stopPropagation(); const n = {geprueft: 'eingestellt', eingestellt: 'verkauft', verkauft: 'geprueft'}[x.status || 'geprueft']; setze(x.id, 'status', n); if (n === 'verkauft') { const v = prompt('Für wie viel verkauft? (€)', String(x.preis || '').replace('.', ',')); if (v) setze(x.id, 'vk', v); } bau(); }); m.append(st);
+        const st = btn('stat', STAT[x.status || 'geprueft'], ev => { ev.stopPropagation(); const n = {geprueft: 'eingestellt', eingestellt: 'verkauft', verkauft: 'geprueft'}[x.status || 'geprueft']; setze(x.id, 'status', n); if (n === 'eingestellt' && !x.s.seit) setze(x.id, 'seit', Date.now()); if (n === 'verkauft') { setze(x.id, 'vt', Date.now()); const v = prompt('Für wie viel verkauft? (€)', String(x.preis || '').replace('.', ',')); if (v) setze(x.id, 'vk', v); kopiere(ANTWORT[5][1]).then(() => toast('Verkauft ✓ – Danke-Nachricht kopiert')); } bau(); }); m.append(st);
+        if (x.status === 'eingestellt' && x.s.seit) { const tg = Math.floor((Date.now() - x.s.seit) / 864e5); m.append(e('div', 'm', '⏱ ' + (tg ? 'seit ' + tg + (tg > 1 ? ' Tagen' : ' Tag') : 'seit heute') + ' online'));
+          if (tg >= 7 && x.preis) { const np = runter(x.preis * 0.9); m.append(btn('stat', '⏰ Preis auf ' + eur(np) + ' senken', async ev => { ev.stopPropagation(); setze(x.id, 'preis', np); setze(x.id, 'seit', Date.now()); await kopiere(String(np.toFixed(2)).replace('.', ',')); toast('Neuer Preis kopiert'); bau(); })); } }
         const r = e('div'); r.style.textAlign = 'right'; r.append(e('div', 'p', x.status === 'verkauft' && x.vk ? eur(zahl(x.vk)) : x.preis ? eur(x.preis) : '–'));
-        const dup = btn('del', '⧉', ev => { ev.stopPropagation(); S = Object.assign(neu(), JSON.parse(JSON.stringify(x.s)), {id: Date.now(), status: 'geprueft', vk: '', plat: ''}); fotos = []; schritt = 1; ansicht = 'check'; sp(); bau(); toast('Kopie angelegt'); }); dup.title = 'Duplizieren';
+        const dup = btn('del', '⧉', ev => { ev.stopPropagation(); S = Object.assign(neu(), JSON.parse(JSON.stringify(x.s)), {id: Date.now(), status: 'geprueft', vk: '', plat: '', seit: 0, vt: 0}); fotos = []; schritt = 1; ansicht = 'check'; sp(); bau(); toast('Kopie angelegt'); }); dup.title = 'Duplizieren';
         const del = btn('del', '🗑', ev => { ev.stopPropagation(); weg = x; ls('pc-verlauf', H().filter(y => y.id !== x.id)); bau(); }); del.title = 'Löschen'; r.append(dup, del);
-        it.append(im, m, r); const auf = async () => { S = Object.assign(neu(), x.s); fotos = await fotoLaden(x.id); schritt = 4; ansicht = 'check'; sp(); bau(); }; it.addEventListener('click', auf); it.addEventListener('keydown', ev => { if (ev.key === 'Enter') auf(); }); l.append(it); }); }
-    zeige();
+        it.append(im, m, r); const auf = async () => { S = Object.assign(neu(), x.s); fotos = await fotoLaden(x.id); schritt = 4; ansicht = 'check'; sp(); bau(); }; it.addEventListener('click', () => { if (buendel) { buendel.has(x.id) ? buendel.delete(x.id) : buendel.add(x.id); zeige(); kasse(); } else auf(); }); it.addEventListener('keydown', ev => { if (ev.key === 'Enter') auf(); }); l.append(it); }); }
+    zeige(); kasse();
     if (weg) { const u = btn('go leise', '↩ „' + (weg.titel || '').slice(0, 30) + '“ wiederherstellen', () => { const L = H(); L.unshift(weg); ls('pc-verlauf', L); weg = null; bau(); }); b.append(u); }
     const k = e('div', 'zwei'); ['vinted', 'ebay', 'kleinanzeigen', 'cardmarket'].forEach(id => { const a = e('a', 'go leise', 'Meine ' + P[id].l + ' ↗'); a.href = P[id].meine; a.target = '_blank'; a.rel = 'noopener'; k.append(a); }); b.append(e('div', 'lbl', 'Konten'), k);
     b.append(btn('go leise', '⬇ Verlauf als Tabelle (CSV)', () => { const z = [['Datum', 'Titel', 'Status', 'Plattform', 'Empfehlung', 'Verkauft für', 'Modus']].concat(H().map(x => [datum(x.t), x.titel, STAT[x.status || 'geprueft'].slice(2), x.plat ? P[x.plat].l : '', String(x.preis || '').replace('.', ','), x.vk || '', x.job ? 'NoxRift' : 'Privat']));
