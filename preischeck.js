@@ -4,7 +4,10 @@
    Eigene App (GitHub) und Bereich in NoxRift – dieselbe Datei. */
 (function () {
   const css = `
-.pc{--bg:#0b0d14;--s1:#12151f;--s2:#181c29;--line:#262c3d;--txt:#f4f6fb;--mut:#9aa3ba;--acc:#c6ff3d;--vio:#7c5cff;--pink:#ff4fd8;--cyan:#3df5ff;--ok:#2bf59a;color:var(--txt);font:16px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;display:grid;gap:14px;max-width:540px;margin:0 auto;width:100%}
+.pc{--bg:#0b0d14;--s1:#12151f;--s2:#181c29;--line:#262c3d;--txt:#f4f6fb;--mut:#9aa3ba;--acc:#c6ff3d;--vio:#7c5cff;--pink:#ff4fd8;--cyan:#3df5ff;--ok:#2bf59a;color:var(--txt);font:16px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;display:grid;gap:14px;max-width:540px!important;margin:0 auto!important;width:100%!important;min-width:0;box-sizing:border-box}
+.pc>*{min-width:0;max-width:100%}
+.pc .steps{grid-template-columns:repeat(4,minmax(0,1fr))!important;width:100%!important}
+.pc .steps button{min-width:0!important;width:auto!important;margin:0!important}
 .pc *{box-sizing:border-box}
 .pc button{font:inherit;color:inherit}
 .pc a{color:inherit}
