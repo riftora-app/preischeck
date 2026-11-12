@@ -1,5 +1,5 @@
 /* © 2026 NOXRIFT – Manuel. Alle Rechte vorbehalten. Nutzung nur für das NoxRift-Team.
-   Preis-Check v13 – Gen-Z-Design, Schritt für Schritt:
+   Preis-Check v14 – Gen-Z-Design, Arbeitsmodus (NoxRift-Konten) / Privat, Datenschutz:
    1 Kamera & Zustand · 2 Vergleich · 3 Titel & Beschreibung · 4 Preisempfehlung + Einstellen auf dem eigenen Konto · Verlauf.
    Eigene App (GitHub) und Bereich in NoxRift – dieselbe Datei. */
 (function () {
@@ -72,7 +72,11 @@
 .pc .hist .t{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pc .hist .p{font-weight:900;color:var(--lime)}
 .pc .hist .del{border:none;background:transparent;cursor:pointer;font-size:1.1rem;color:var(--mut)}
-.pc .fuss{color:var(--mut);font-size:.78rem;text-align:center}`;
+.pc .fuss{color:var(--mut);font-size:.78rem;text-align:center}
+.pc .modus{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--card);border:2px solid var(--line);border-radius:999px;padding:5px}
+.pc .modus button{border:none;border-radius:999px;padding:10px 6px;background:transparent;font-weight:900;cursor:pointer;color:var(--mut)}
+.pc .modus button[aria-pressed=true]{background:var(--cyan);color:#111}
+.pc .arb{border-radius:18px;padding:12px 14px;background:rgba(61,245,255,.12);border:2px solid var(--cyan);font-size:.92rem;font-weight:700}`;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
   const e = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
   const btn = (c, x, fn) => { const b = e('button', c, x); b.type = 'button'; if (fn) b.addEventListener('click', fn); return b; };
@@ -91,6 +95,7 @@
     cardmarket: {l: 'Cardmarket', e: '🟣', fee: 5, such: n => 'https://www.cardmarket.com/de/Pokemon/Products/Search?searchString=' + q(n), neu: 'https://www.cardmarket.com/de/Pokemon/Stock/Offers/Singles', meine: 'https://www.cardmarket.com/de/Pokemon/Stock/Offers/Singles', hint: 'Preise ansehen'}
   };
   const TEAM = {Manu: {vinted: 'kingwhizz', cardmarket: 'KingWhiizZ'}, Melly: {}, Amelie: {}};
+  const NOXRIFT = TEAM.Manu; /* Firmenkonten von NoxRift */
 
   /* Zustands-Prüfung je Kategorie (Karten: Cardmarket-Skala, Rest: Vinted-Skala; der schlechteste Punkt zählt) */
   const KS = ['Mint (M)', 'Near Mint (NM)', 'Excellent (EX)', 'Good (GD)', 'Light Played (LP)', 'Played (PL)', 'Poor (PO)'];
@@ -144,7 +149,8 @@
   const SCHUTZ_ALLE = ['Nur über die Plattform bezahlen lassen – nie PayPal „Freunde“, nie Links oder Codes von Käufern anklicken.', 'Verpacken kurz filmen (Artikel → Paket → Etikett) – Beweis gegen „Paket war leer“.'];
 
   const neu = () => ({id: Date.now(), kat: '', checks: [], extra: [], name: '', maengel: '', preise: {}, bild: ''});
-  let S = Object.assign(neu(), lj('pc-s13', {})), fotos = [], schritt = lj('pc-step', 1), ansicht = 'check', ich = lj('pc-ich', '');
+  let S = Object.assign(neu(), lj('pc-s13', {})), fotos = [], schritt = lj('pc-step', 1), ansicht = 'check', ich = lj('pc-ich', ''), modus = lj('pc-modus2', 'arbeit');
+  const arbeit = () => ich === 'Manu' || modus === 'arbeit';
   const sp = () => { ls('pc-s13', S); ls('pc-step', schritt); };
   const root = document.getElementById('pc-root'); if (!root) return; root.className = 'pc';
 
@@ -167,14 +173,15 @@
   /* Verlauf (auf diesem Gerät gespeichert) */
   const H = () => lj('pc-verlauf', []);
   function merken() { if (!S.name.trim()) return; const b = bester(); const L = H().filter(x => x.id !== S.id);
-    L.unshift({id: S.id, t: Date.now(), wer: ich, s: JSON.parse(JSON.stringify(S)), titel: titel(), preis: b ? b.x.start : 0, plat: b ? b.id : ''});
+    L.unshift({id: S.id, t: Date.now(), wer: ich, job: arbeit(), s: JSON.parse(JSON.stringify(S)), titel: titel(), preis: b ? b.x.start : 0, plat: b ? b.id : ''});
     let n = Math.min(L.length, 60); while (n > 0 && !ls('pc-verlauf', L.slice(0, n))) n--; }
 
   function kopf() {
     const t = e('div', 'top'); const lg = e('div', 'logo'); lg.append('💸 Preis', e('i', '', 'Check')); t.append(lg);
     if (ich) t.append(btn('pill', ansicht === 'verlauf' ? '✕ Zurück' : '🕘 Verlauf', () => { ansicht = ansicht === 'verlauf' ? 'check' : 'verlauf'; bau(); }));
     root.append(t);
-    if (ich) { const h = e('div', 'hey'); h.append('Hey ' + ich + ' 👋 · '); const w = e('a', '', 'wechseln'); w.href = '#'; w.style.color = 'var(--cyan)'; w.addEventListener('click', ev => { ev.preventDefault(); ich = ''; ls('pc-ich', ''); bau(); }); h.append(w); root.append(h); }
+    if (ich) { const h = e('div', 'hey'); h.append('Hey ' + ich + ' 👋 · '); const w = e('a', '', 'wechseln'); w.href = '#'; w.style.color = 'var(--cyan)'; w.addEventListener('click', ev => { ev.preventDefault(); ich = ''; ls('pc-ich', ''); bau(); }); h.append(w); root.append(h);
+      if (ich !== 'Manu') { const mo = e('div', 'modus'); [['arbeit', '💼 Arbeit für NoxRift'], ['privat', '🙋 Privat']].forEach(([k, l]) => { const b = btn('', l, () => { modus = k; ls('pc-modus2', k); bau(); }); b.setAttribute('aria-pressed', String(modus === k)); mo.append(b); }); root.append(mo); } }
   }
   function werBistDu() {
     const b = e('section', 'box'); b.append(e('h2', '', 'Wer bist du? 🙋'), e('div', 'sub', 'Damit die Knöpfe zu deinem eigenen Vinted- und eBay-Konto führen.'));
@@ -224,15 +231,17 @@
     b.append(weiter('Weiter zum Preis 👉', 4)); root.append(b);
   }
   function s4() {
-    const b = e('section', 'box'); b.append(e('h2', '', 'So viel kannst du verlangen 💰')); const best = bester(); const T = titel(); const konto = TEAM[ich] || {};
+    const b = e('section', 'box'); b.append(e('h2', '', 'So viel kannst du verlangen 💰')); const best = bester(); const T = titel(); const konto = arbeit() ? NOXRIFT : (TEAM[ich] || {});
     if (!best) { b.append(e('div', 'warn', 'Noch kein Preis – geh zu Schritt 2 🔍')); root.append(b); return; }
     plats().forEach(id => { const p = P[id], x = empf(id); const d = e('div', 'plat' + (best.id === id ? ' top' : '')); const k = e('div', 'kopf'); k.append(e('b', '', p.e + ' ' + p.l));
       if (!x) { k.append(e('span', 'm', 'kein Preis')); d.append(k); b.append(d); return; }
       if (best.id === id) k.append(e('span', 'badge', '🏆 BESTE WAHL')); k.append(e('span', 'preis', eur(x.start))); d.append(k);
       d.append(e('div', 'm', 'Zuletzt verkauft für ' + eur(x.pr) + ' · nie unter ' + eur(x.min) + (p.fee ? ' · ' + p.fee + ' % Gebühr' : '')));
       const z = e('div', 'zwei'); z.append(kBtn('📋 Preis', String(x.start.toFixed(2)).replace('.', ','), 'leise'));
-      const a = e('a', 'go' + (best.id === id ? '' : ' leise'), 'Einstellen' + (konto[id] ? ' als ' + konto[id] : '') + ' ↗'); a.href = p.neu; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', () => { if (T) kopiere(T); merken(); }); z.append(a); d.append(z); b.append(d); });
-    b.append(e('div', 'm', '👉 „Einstellen“ öffnet dein Konto (am Handy direkt die App) und kopiert den Titel. Preis = letzter Verkauf + 5 % zum Verhandeln.'));
+      const a = e('a', 'go' + (best.id === id ? '' : ' leise'), 'Einstellen' + (konto[id] ? ' als ' + konto[id] : (arbeit() ? ' (NoxRift)' : '')) + ' ↗'); a.href = p.neu; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', () => { if (T) kopiere(T); merken(); }); z.append(a); d.append(z); b.append(d); });
+    if (arbeit() && ich !== 'Manu') { b.append(e('div', 'arb', '💼 Arbeitsmodus: Diese Anzeige ist für NoxRift. Schick sie an Manu – oder stell sie direkt ein, wenn auf diesem Handy das NoxRift-Konto angemeldet ist.'));
+      b.append(btn('go', '📤 An NoxRift (Manu) schicken', schicken)); }
+    b.append(e('div', 'm', arbeit() ? '👉 „Einstellen“ öffnet das Konto, das auf diesem Gerät angemeldet ist, und kopiert den Titel. Preis = letzter Verkauf + 5 % zum Verhandeln.' : '👉 „Einstellen“ öffnet dein eigenes Konto (am Handy direkt die App) und kopiert den Titel. Preis = letzter Verkauf + 5 % zum Verhandeln.'));
     b.append(btn('go pink', '🆕 Nächstes Teil', () => { merken(); S = neu(); fotos = []; schritt = 1; sp(); bau(); window.scrollTo && window.scrollTo({top: 0, behavior: 'smooth'}); }));
     root.append(b);
   }
@@ -240,7 +249,7 @@
     const b = e('section', 'box'); b.append(e('h2', '', 'Dein Verlauf 🕘'), e('div', 'sub', 'Antippen = wieder öffnen. Gespeichert auf diesem Gerät.'));
     const L = H(); if (!L.length) b.append(e('div', 'm', 'Noch nichts gecheckt.'));
     const l = e('div', 'hist'); L.forEach(x => { const it = e('div', 'it'); it.setAttribute('role', 'button'); it.tabIndex = 0; const im = x.s.bild ? Object.assign(e('img'), {src: x.s.bild, alt: ''}) : e('div', 'ph', (KAT[x.s.kat] || KAT.sonst).e);
-      const m = e('div'); m.style.minWidth = '0'; m.append(e('div', 't', x.titel || x.s.name), e('div', 'm', datum(x.t) + (x.wer ? ' · ' + x.wer : '') + (x.plat ? ' · ' + P[x.plat].l : '')));
+      const m = e('div'); m.style.minWidth = '0'; m.append(e('div', 't', x.titel || x.s.name), e('div', 'm', datum(x.t) + (x.wer ? ' · ' + x.wer : '') + (x.job ? ' · 💼' : '') + (x.plat ? ' · ' + P[x.plat].l : '')));
       const r = e('div'); r.style.textAlign = 'right'; r.append(e('div', 'p', x.preis ? eur(x.preis) : '–'));
       const del = btn('del', '🗑', ev => { ev.stopPropagation(); ls('pc-verlauf', H().filter(y => y.id !== x.id)); bau(); }); del.title = 'Löschen'; r.append(del);
       it.append(im, m, r); const auf = () => { S = Object.assign(neu(), x.s); fotos = []; schritt = 4; ansicht = 'check'; sp(); bau(); }; it.addEventListener('click', auf); it.addEventListener('keydown', ev => { if (ev.key === 'Enter') auf(); }); l.append(it); });
@@ -249,12 +258,29 @@
     root.append(b);
   }
 
+  async function schicken() { merken(); const best = bester(); const txt = ['📦 NOXRIFT-ANZEIGE von ' + ich, '', 'TITEL: ' + titel(), '', 'BESCHREIBUNG:', beschreibung(), '', 'PREIS: ' + (best ? eur(best.x.start) + ' auf ' + P[best.id].l + ' (nie unter ' + eur(best.x.min) + ')' : '–')].join('\n');
+    await kopiere(txt); const files = fotos.map((f, i) => new File([f.blob], 'noxrift-' + (i + 1) + '.jpg', {type: 'image/jpeg'}));
+    try { if (files.length && navigator.canShare && navigator.canShare({files})) { await navigator.share({files, text: txt}); return; } if (navigator.share) { await navigator.share({text: txt}); return; } } catch (x) { if (x && x.name === 'AbortError') return; }
+    window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank', 'noopener'); }
+  function datenschutz() {
+    const b = e('section', 'box'); b.append(e('h2', '', 'Datenschutz & Nutzung 🔐'), e('div', 'sub', 'Stand: 12.11.2026'));
+    [['Wer steckt dahinter?', 'Preis-Check ist eine interne App von NOXRIFT (Manuel). Sie ist nur für das NoxRift-Team gedacht (Manu, Melly, Amelie) und mit einem Zugangscode geschützt.'],
+     ['Welche Daten?', 'Fotos, Namen der Artikel, Zustand, Preise und dein Verlauf werden nur auf deinem Gerät gespeichert (im Browser-Speicher). Es gibt keinen eigenen Server, kein Konto, keine Cookies, kein Tracking und keine Werbung. Fotos verlassen dein Handy nur, wenn du selbst auf „Teilen“ oder „An NoxRift schicken“ tippst.'],
+     ['Hosting', 'Die App liegt bei GitHub Pages (GitHub Inc.). Beim Aufruf verarbeitet GitHub technisch nötige Daten wie deine IP-Adresse, um die Seite auszuliefern. Mehr dazu in der Datenschutzerklärung von GitHub.'],
+     ['Andere Seiten', 'Links zu Vinted, eBay, Kleinanzeigen und Cardmarket öffnen deren Seiten bzw. Apps. Dort gelten deren eigene Datenschutzregeln. Die App liest nichts aus deinen Konten aus.'],
+     ['Arbeitsmodus', 'Im Modus „Arbeit für NoxRift“ sind Anzeigen für die NoxRift-Konten gedacht. Zugangsdaten werden nie in der App gespeichert. Im Modus „Privat“ kannst du die App für deine eigenen Sachen nutzen.'],
+     ['Deine Rechte', 'Du kannst deinen Verlauf jederzeit löschen (🗑 im Verlauf) oder alles entfernen, indem du die Website-Daten im Browser löschst. Fragen und Auskunft (DSGVO): direkt an Manuel.'],
+     ['Nicht weitergeben', 'Zugangscode, Link, App, Code und Design sind urheberrechtlich geschützt (© 2026 NOXRIFT, alle Rechte vorbehalten). Weitergeben, Kopieren, Nachbauen oder Verkaufen ist ohne schriftliche Erlaubnis von Manuel verboten. Die Nutzung ist persönlich und kann jederzeit beendet werden.']]
+      .forEach(([t, x]) => { const d = e('div', 'feld'); d.append(e('div', 'lbl', t), e('div', 'v', x)); b.append(d); });
+    b.append(btn('go leise', '✕ Zurück', () => { ansicht = 'check'; bau(); })); root.append(b);
+  }
   function bau() {
     root.replaceChildren(); kopf();
     if (!ich) werBistDu();
     else if (ansicht === 'verlauf') verlauf();
+    else if (ansicht === 'datenschutz') datenschutz();
     else { leiste(); [s1, s2, s3, s4][Math.min(Math.max(schritt, 1), 4) - 1](); }
-    root.append(e('div', 'fuss', '© 2026 NOXRIFT · Alle Rechte vorbehalten · nur fürs NoxRift-Team'));
+    const fu = e('div', 'fuss', '© 2026 NOXRIFT · Alle Rechte vorbehalten · nur fürs NoxRift-Team · '); const dl = e('a', '', 'Datenschutz & Nutzung'); dl.href = '#'; dl.style.color = 'var(--cyan)'; dl.addEventListener('click', ev => { ev.preventDefault(); ansicht = 'datenschutz'; bau(); window.scrollTo && window.scrollTo({top: 0}); }); fu.append(dl); root.append(fu);
     if (window.dash) { const a = e('a', 'go leise', '📲 App fürs Handy'); a.href = 'https://riftora-app.github.io/preischeck/'; a.target = '_blank'; a.rel = 'noopener'; root.append(a); }
   }
 
