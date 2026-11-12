@@ -1,5 +1,5 @@
 /* © 2026 NOXRIFT – Manuel. Alle Rechte vorbehalten. Nutzung nur für das NoxRift-Team.
-   Hustle-Radar v18 – Runde 3 (Hell/Dunkel, große Schrift, Team-Namen, Wochenziel, LEGO & Figuren, Backup, Wischen …), Runde 2 (Verhandeln, Käufer-Antworten, Ladenhüter, Bündel …), Runde 1 (Fotos bleiben, Median-Preise, Gewinnrechner, Verlauf mit Status & Statistik …), Profi-Design, neues Logo, alles vorausgewählt (änderbar), Arbeitsmodus für NoxRift-Konten,
+   Hustle-Radar v19 – Runde 4 (Feinschliff: Ein-Tipp-Knöpfe, eigene Eingabefenster, Tausenderpunkte, Backup als Text …), Runde 3 (Hell/Dunkel, große Schrift, Team-Namen, Wochenziel, LEGO & Figuren, Backup, Wischen …), Runde 2 (Verhandeln, Käufer-Antworten, Ladenhüter, Bündel …), Runde 1 (Fotos bleiben, Median-Preise, Gewinnrechner, Verlauf mit Status & Statistik …), Profi-Design, neues Logo, alles vorausgewählt (änderbar), Arbeitsmodus für NoxRift-Konten,
    neue Sammel-Kategorien: Magic, Star Wars Unlimited, Topps/Force Attax, Panini/Topps-Sticker & Alben.
    Eigene App (GitHub) und Bereich in NoxRift – dieselbe Datei. */
 (function () {
@@ -108,6 +108,7 @@
 @media (prefers-reduced-motion:reduce){.pc .box{animation:none}}
 .pc .ziel{height:8px;border-radius:9px;background:var(--line);overflow:hidden}.pc .ziel i{display:block;height:100%;background:linear-gradient(90deg,var(--vio),var(--pink))}
 .pc .opt{display:flex;gap:6px;justify-content:space-between;align-items:center;flex-wrap:wrap}.pc .opt>div{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pc .seg button{min-height:38px}.pc button:focus-visible,.pc a:focus-visible,.pc label:focus-within{outline:2px solid var(--cyan);outline-offset:2px}
 .konf{position:fixed;font-size:26px;pointer-events:none;z-index:9999;animation:konf 1.1s ease-out forwards}@keyframes konf{to{transform:translate(var(--x),var(--y)) rotate(360deg);opacity:0}}`;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
   const e = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
@@ -116,7 +117,8 @@
   const LOGO = '<svg viewBox="0 0 512 512" aria-hidden="true"><defs><linearGradient id="pcbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient><linearGradient id="pcck" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d4ff4f"/><stop offset="1" stop-color="#3df5ff"/></linearGradient></defs><rect width="512" height="512" rx="116" fill="url(#pcbg)"/><path d="M150 128h132c12 0 23 5 31 13l84 84c17 17 17 45 0 62l-110 110c-17 17-45 17-62 0l-84-84c-8-8-13-19-13-31V150c0-12 10-22 22-22z" fill="#fff"/><circle cx="190" cy="186" r="22" fill="#7c5cff"/><path d="M202 288l46 46 92-104" fill="none" stroke="url(#pcck)" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="14" r="4"/></svg>';
   const eur = v => (Math.round((+v || 0) * 100) / 100).toLocaleString('de-DE', {style: 'currency', currency: 'EUR'});
-  const zahl = v => +String(v || '').replace(',', '.') || 0;
+  const nr = v => { let x = String(v || '').replace(/€/g, '').trim(); if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(x)) x = x.replace(/\./g, ''); return +x.replace(',', '.') || 0; };
+  const zahl = nr;
   const lj = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (x) { return d; } };
   const ls = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (x) { return false; } };
   const q = s => encodeURIComponent(String(s || '').trim());
@@ -212,7 +214,7 @@
     [/pok[eé]mon|glurak|pikachu|mewtu|evoli|turtok|bisasam|\b\d{1,3}\/\d{2,3}\b|\bvmax\b|\bex\b|\bgx\b/i, 'tcg', 'pokemon'],
     [/\bps[1-5]\b|playstation|xbox|switch|nintendo|\bds\b|3ds|gamecube|\bwii\b|game ?boy|\bpc spiel/i, 'spiel'],
     [/nike|adidas|jordan|air max|sneaker|schuh|yeezy|new balance|vans|converse|puma/i, 'schuhe'],
-    [/\b(925|585|750|333)\b|ring|kette|armband|ohrring|schmuck|uhr\b/i, 'schmuck'],
+    [/\b(925|585|750|333)\b|\bringe?\b|halskette|\bkette\b|armband|ohrring|schmuck|uhr\b/i, 'schmuck'],
     [/iphone|samsung|airpods|handy|konsole|controller|laptop|tablet|ipad|kopfhörer|kamera/i, 'technik'],
     [/trikot|hoodie|jacke|shirt|jeans|hose|pullover|kleid|mantel|cap\b|mütze/i, 'kleidung']];
   function erkenne(n) { for (const [re, k, sp] of ERKENNUNG) if (re.test(n)) return {k, sp}; return null; }
@@ -238,9 +240,9 @@
       pf === 'kleinanzeigen' ? 'Abholung oder Versand möglich (Versandkosten trägt der Käufer).' : 'Versand schnell und sicher verpackt.',
       pf === 'kleinanzeigen' && S.vb ? 'Preis ist VB – mach mir gern ein Angebot.' : null, 'Privatverkauf, daher keine Garantie oder Rücknahme.', lj('pc-sig', '') || null, pf === 'vinted' && hashtags() ? '\n' + hashtags() : null].filter(x => x !== null).join('\n'); }
   function hashtags() { const K = KAT[S.kat] || {}; const w = S.name.toLowerCase().replace(/[^a-z0-9äöüß ]/g, ' ').split(/\s+/).filter(x => x.length > 2 && !/^\d+$/.test(x)).slice(0, 4);
-    const b = {tcg: [(SPIELE[S.spiel] || ['karten'])[0].toLowerCase().replace(/[^a-z]/g, ''), 'sammelkarten', 'tcg'], topps: ['topps', 'starwars', 'sammelkarten'], sticker: ['panini', 'stickeralbum', 'sammeln'], spiel: ['videospiel', 'gaming'], schuhe: ['sneaker'], kleidung: ['fashion'], schmuck: ['schmuck'], technik: ['technik']}[S.kat] || [];
+    const b = {tcg: [(SPIELE[S.spiel] || ['karten'])[0].toLowerCase().replace(/[^a-z]/g, ''), 'sammelkarten', 'tcg'], topps: ['topps', 'starwars', 'sammelkarten'], sticker: ['panini', 'stickeralbum', 'sammeln'], spiel: ['videospiel', 'gaming'], schuhe: ['sneaker'], kleidung: ['fashion'], schmuck: ['schmuck'], technik: ['technik'], lego: ['lego', 'legoset'], figur: ['funko', 'sammelfigur']}[S.kat] || [];
     return [...new Set(w.concat(b))].slice(0, 7).map(x => '#' + x).join(' '); }
-  const werte = v => String(v || '').split(/[;\s/|]+|,(?=\s)/).map(x => +x.replace(',', '.')).filter(x => x > 0);
+  const werte = v => String(v || '').split(/[;\s/|]+|,(?=\s)/).map(nr).filter(x => x > 0);
   const median = a => { const b = a.slice().sort((x, y) => x - y); const m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
   const TEMPO = {max: ['Maximal', 1.05], fair: ['Fair', 1], schnell: ['Schnell', 0.92]};
   const runter = v => Math.max(0.99, v < 5 ? Math.floor(v * 2) / 2 - 0.01 : Math.floor(v) - 0.01);
@@ -264,7 +266,7 @@
   const H = () => lj('pc-verlauf', []);
   function merken() { if (!S.name.trim()) return; const b = bester(); const L = H(); const alt = L.find(x => x.id === S.id) || {}; const R = L.filter(x => x.id !== S.id);
     R.unshift({id: S.id, t: alt.t || Date.now(), job: arbeit(), s: JSON.parse(JSON.stringify(S)), titel: titel(), preis: b ? b.x.start : 0, plat: S.plat || (b ? b.id : ''), status: S.status || 'geprueft', vk: S.vk || '', wer: alt.wer || wer});
-    let n = Math.min(R.length, 80); while (n > 0 && !ls('pc-verlauf', R.slice(0, n))) n--; }
+    let n = Math.min(R.length, 200); while (n > 0 && !ls('pc-verlauf', R.slice(0, n))) n--; }
   function setze(id, feld, wert) { const L = H(); const x = L.find(y => y.id === id); if (!x) return; x[feld] = wert; x.s[feld] = wert; ls('pc-verlauf', L); }
   function kopf() {
     const t = e('div', 'top'); const br = e('div', 'brand'); br.append(svg(LOGO)); const nm = e('div'); nm.append(e('b', '', 'Hustle-Radar'), e('small', '', 'BY NOXRIFT')); br.append(nm); t.append(br);
@@ -284,7 +286,7 @@
     const b = e('section', 'box'); b.append(e('h2', '', 'Was verkaufst du?'), e('div', 'sub', 'Foto machen, Namen eintippen – den Rest wählt die App schon vor. Passt etwas nicht, einfach umtippen.'));
     const cam = e('label', 'cam'); const fi = e('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.setAttribute('capture', 'environment');
     cam.append(fi, svg(CAM), e('span', '', fotos.length ? 'Noch ein Foto' : 'Foto machen'), e('small', '', KAT[S.kat] ? KAT[S.kat].fotos : 'Gerne mehrere Fotos – Mängel extra'));
-    const neuFotos = async ev => { for (const f of [...(ev.target.files || [])].slice(0, 10 - fotos.length)) { fotos.push(await verkleinern(f, 1600, .9)); if (!S.bild) S.bild = (await verkleinern(f, 160, .7)).data; } fotoSpeichern(); sp(); bau(); };
+    const neuFotos = async ev => { for (const f of [...(ev.target.files || [])].slice(0, 10 - fotos.length)) { fotos.push(await verkleinern(f, 1600, .82)); if (!S.bild) S.bild = (await verkleinern(f, 160, .7)).data; } fotoSpeichern(); sp(); bau(); };
     fi.addEventListener('change', neuFotos);
     const gal = e('label', 'go leise'); gal.style.cursor = 'pointer'; const gi = e('input'); gi.type = 'file'; gi.accept = 'image/*'; gi.multiple = true; gi.style.display = 'none'; gi.addEventListener('change', neuFotos); gal.append(gi, '🖼 Aus Galerie wählen (mehrere)');
     b.append(cam, gal);
@@ -313,7 +315,7 @@
       if (K.tipps) { const tp = e('div', 'tipp'); tp.append(e('b', '', 'So holst du am meisten raus')); const ul = e('ul'); K.tipps.forEach(x => ul.append(e('li', '', x))); tp.append(ul); b.append(tp); }
       const d = e('details'); d.append(e('summary', '', '🛡️ So zieht dich keiner ab')); const ul = e('ul'); K.schutz.concat(SCHUTZ_ALLE).forEach(x => ul.append(e('li', '', x))); d.append(ul); b.append(d);
     }
-    b.append(weiter('Weiter zum Vergleich →', 2, !(S.kat && S.name.trim())));
+    const wb = weiter('Weiter zum Vergleich →', 2, !(S.kat && S.name.trim())); b.append(wb); ni.addEventListener('input', () => { S.name = ni.value; sp(); wb.disabled = !S.name.trim(); });
     if (!S.kat) { const sz2 = e('div', 'tipp'); sz2.append(e('b', '', '📅 Gerade gefragt'), e('div', '', SAISON[new Date().getMonth()])); b.append(sz2); }
     if (S.name || fotos.length) b.append(btn('go leise', '↺ Neu anfangen', () => { if (S.name.trim()) merken(); S = neu(); fotos = []; fokus = true; sp(); bau(); }));
     root.append(b);
@@ -322,8 +324,8 @@
     const b = e('section', 'box'); b.append(e('h2', '', 'Was zahlen andere?'), e('div', 'sub', 'Link öffnen, die letzten echten Verkaufspreise eintragen – gern mehrere mit Leerzeichen (z. B. „34 38 36“). Die App nimmt den Mittelwert (Median), Ausreißer zählen kaum.'));
     plats().forEach(id => { const p = P[id]; const r = e('div', 'row'); const l = e('div'); l.append(e('b', '', p.l), e('br')); const a = e('a', '', '↗ ' + p.hint); a.href = p.such(S.name); a.target = '_blank'; a.rel = 'noopener'; l.append(a);
       const w = werte(S.preise[id]); if (w.length > 1) l.append(e('div', 'm', 'Median ' + eur(median(w)) + ' aus ' + w.length));
-      const i = e('input'); i.inputMode = 'decimal'; i.placeholder = '€'; i.value = S.preise[id] || ''; i.addEventListener('change', () => { S.preise[id] = i.value; sp(); bau(); }); r.append(l, i); b.append(r); });
-    b.append(weiter('Weiter zum Text →', 3, !bester())); if (!bester()) b.append(e('div', 'm', 'Mindestens einen Preis eintragen.'));
+      const i = e('input'); i.inputMode = 'decimal'; i.placeholder = '€'; i.value = S.preise[id] || ''; i.addEventListener('change', () => { S.preise[id] = i.value; sp(); bau(); }); i.addEventListener('input', () => { S.preise[id] = i.value; sp(); wt.disabled = !bester(); }); i.addEventListener('keydown', ev => { if (ev.key === 'Enter') i.blur(); }); r.append(l, i); b.append(r); });
+    const wt = weiter('Weiter zum Text →', 3, !bester()); b.append(wt); if (!bester()) b.append(e('div', 'm', 'Mindestens einen Preis eintragen.'));
     root.append(b);
   }
   let pfText = 'vinted';
@@ -377,6 +379,10 @@
   let suche = '', filt = 'alle', weg = null, sortier = 'neu', buendel = null;
   const liegt = x => x.status === 'eingestellt' && x.s.seit && Date.now() - x.s.seit >= 7 * 864e5;
   const STAT = {geprueft: '🔍 Geprüft', eingestellt: '📤 Eingestellt', verkauft: '✅ Verkauft'};
+  function frage(titel, wert, ok, art) { const o = e('div'); o.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;z-index:9998;padding:20px'; const k = e('div', 'pc' + (hell ? ' hell' : '')); const bx = e('section', 'box'); const i = e('input'); i.inputMode = art === 'text' ? 'text' : 'decimal'; i.value = wert || ''; const zu = () => o.remove(); const fertig = () => { const v = i.value; zu(); ok(v); };
+    i.addEventListener('keydown', ev => { if (ev.key === 'Enter') fertig(); if (ev.key === 'Escape') zu(); }); const z = e('div', 'zwei'); z.append(btn('go leise', 'Abbrechen', zu), btn('go', 'OK', fertig)); bx.append(e('h2', '', titel), i, z); k.append(bx); o.append(k); o.addEventListener('click', ev => { if (ev.target === o) zu(); }); document.body.append(o); setTimeout(() => { i.focus(); i.select(); }, 30); }
+  function einspielen(d) { if (!d || d.app !== 'hustle-radar' || !Array.isArray(d.verlauf)) throw 0; const L = H(); const ids = new Set(L.map(x => x.id)); const NL = L.concat(d.verlauf.filter(x => x && x.id && x.s && !ids.has(x.id))).sort((a, z) => z.t - a.t); ls('pc-verlauf', NL.slice(0, 200)); if (d.sig && !lj('pc-sig', '')) ls('pc-sig', d.sig); if (d.ziel && !lj('pc-ziel', '')) ls('pc-ziel', d.ziel); toast((NL.length - L.length) + ' Einträge übernommen'); bau(); }
+  async function aufraeumen() { try { const d = await idb(); const keep = new Set(H().map(x => String(x.id)).concat(String(S.id))); const st = d.transaction('fotos', 'readwrite').objectStore('fotos'); const r = st.getAllKeys(); r.onsuccess = () => r.result.forEach(k => { if (!keep.has(String(k))) st.delete(k); }); } catch (x) {} }
   function verlauf() {
     const b = e('section', 'box'); b.append(e('h2', '', 'Verlauf'), e('div', 'sub', 'Antippen öffnet den Artikel wieder. Gespeichert auf diesem Gerät.'));
     const A = H(); const vk = A.filter(x => x.status === 'verkauft'); const ums = vk.reduce((s, x) => s + (zahl(x.vk) || x.preis || 0), 0);
@@ -386,44 +392,45 @@
     const abw = vk.filter(x => zahl(x.vk) && x.preis).map(x => (zahl(x.vk) - x.preis) / x.preis * 100);
     const kz = e('div', 'kz'); [['Geprüft', A.length], ['Eingestellt', A.filter(x => x.status === 'eingestellt').length], ['Verkauft', vk.length], ['Umsatz', eur(ums)], ['Gewinn', eur(gew)], ['Verkauft (7 Tage)', vk.filter(x => x.s.vt && Date.now() - x.s.vt < 7 * 864e5).length], ['Ladenhüter', A.filter(liegt).length], ['Top-Plattform', top()], ['Ø Verkaufspreis', vk.length ? eur(ums / vk.length) : '–'], ['Ø Verkaufsdauer', dauer], ['Ø vs. Empfehlung', abw.length ? (abw.reduce((s, x) => s + x, 0) / abw.length >= 0 ? '+' : '') + Math.round(abw.reduce((s, x) => s + x, 0) / abw.length) + ' %' : '–']].forEach(([l, v]) => { const d = e('div'); d.append(e('b', '', String(v)), e('span', '', l)); kz.append(d); }); b.append(kz);
     const wo = vk.filter(x => x.s.vt && Date.now() - x.s.vt < 7 * 864e5).reduce((s, x) => s + (zahl(x.vk) || x.preis || 0), 0); const zl = zahl(lj('pc-ziel', '')) || 100;
-    const zf = e('div', 'feld'); const zk = e('div', 'lbl', '🎯 Wochenziel (7 Tage)'); zk.append(btn('stat', eur(wo) + ' von ' + eur(zl) + ' ✎', () => { const v = prompt('Wochenziel in €', String(zl).replace('.', ',')); if (v && zahl(v)) { ls('pc-ziel', String(zahl(v))); bau(); } })); const bar = e('div', 'ziel'); const fi2 = e('i'); fi2.style.width = Math.min(100, wo / zl * 100) + '%'; bar.append(fi2); zf.append(zk, bar); if (wo >= zl) zf.append(e('div', 'gew', '🔥 Wochenziel geschafft!')); b.append(zf);
+    const zf = e('div', 'feld'); const zk = e('div', 'lbl', '🎯 Wochenziel (7 Tage)'); zk.append(btn('stat', eur(wo) + ' von ' + eur(zl) + ' ✎', () => { frage('Wochenziel in €', String(zl).replace('.', ','), v => { if (zahl(v)) { ls('pc-ziel', String(zahl(v))); bau(); } }); })); const bar = e('div', 'ziel'); const fi2 = e('i'); fi2.style.width = Math.min(100, wo / zl * 100) + '%'; bar.append(fi2); zf.append(zk, bar); if (wo >= zl) zf.append(e('div', 'gew', '🔥 Wochenziel geschafft!')); b.append(zf);
     const si = e('input'); si.placeholder = '🔎 Suchen …'; si.value = suche; si.addEventListener('input', () => { suche = si.value; zeige(); }); b.append(si);
     const fg = e('div', 'seg'); [['alle', 'Alle'], ['geprueft', 'Geprüft'], ['eingestellt', 'Eingestellt'], ['verkauft', 'Verkauft'], ['alt', '⏰ Ladenhüter'], ['job', 'NoxRift'], ['privat', 'Privat'], ['Manu', '👤 Manu'], ['Melly', '👤 Melly'], ['Amelie', '👤 Amelie']].forEach(([k, l]) => { const x = btn('', l, () => { filt = k; bau(); }); x.setAttribute('aria-pressed', String(filt === k)); fg.append(x); }); b.append(fg);
     const so = e('div', 'seg'); [['neu', 'Neueste'], ['alt', 'Älteste'], ['preis', 'Höchster Preis']].forEach(([k, l]) => { const x = btn('', '↕ ' + l, () => { sortier = k; bau(); }); x.setAttribute('aria-pressed', String(sortier === k)); so.append(x); }); b.append(so);
     b.append(btn('go leise', buendel ? '✕ Bündel beenden' : '🧺 Bündel schnüren (mehrere zusammen verkaufen)', () => { buendel = buendel ? null : new Set(); bau(); }));
     const kb = e('div'); b.append(kb);
     const l = e('div', 'hist'); b.append(l);
-    function kasse() { kb.replaceChildren(); if (!buendel) return; const W = H().filter(x => buendel.has(x.id)); if (!W.length) { kb.append(e('div', 'arb', 'Tippe die Artikel an, die zusammen weg sollen.')); return; } const su = W.reduce((s, x) => s + (x.preis || 0), 0); const bp = runter(su * 0.85);
+    function kasse() { kb.replaceChildren(); if (!buendel) return; const W = H().filter(x => buendel.has(x.id)); if (!W.length) { kb.append(e('div', 'arb', 'Tippe die Artikel an, die zusammen weg sollen.')); return; } const su = W.reduce((s, x) => s + (x.preis || 0), 0); if (!su) { kb.append(e('div', 'arb', 'Die gewählten Artikel haben noch keinen Preis – erst in Schritt 2 Preise eintragen.')); return; } const bp = runter(su * 0.85);
       const f = e('div', 'feld'); f.append(e('div', 'lbl', W.length + ' Artikel · einzeln ' + eur(su)), e('div', 'v', 'Bündelpreis: ' + eur(bp) + ' (−15 %)'), kBtn('Bündel-Text kopieren', '🧺 Bündel-Angebot:\n' + W.map(x => '• ' + x.titel + (x.preis ? ' (' + eur(x.preis) + ')' : '')).join('\n') + '\n\nZusammen statt ' + eur(su) + ' nur ' + eur(bp) + '!')); kb.append(f); }
     function zeige() { l.replaceChildren(); const q = suche.toLowerCase();
-      const L = A.filter(x => (!q || (x.titel || x.s.name || '').toLowerCase().includes(q)) && (filt === 'alle' || (filt === 'job' ? x.job : filt === 'privat' ? !x.job : filt === 'alt' ? liegt(x) : /^[A-Z]/.test(filt) ? x.wer === filt : (x.status || 'geprueft') === filt)));
+      const L = A.filter(x => (!q || [x.titel, x.s.name, x.wer, (KAT[x.s.kat] || {}).l, x.plat && P[x.plat].l].join(' ').toLowerCase().includes(q)) && (filt === 'alle' || (filt === 'job' ? x.job : filt === 'privat' ? !x.job : filt === 'alt' ? liegt(x) : /^[A-Z]/.test(filt) ? x.wer === filt : (x.status || 'geprueft') === filt)));
       if (sortier === 'alt') L.reverse(); else if (sortier === 'preis') L.sort((a, c) => (c.preis || 0) - (a.preis || 0));
-      if (!L.length) l.append(e('div', 'm', A.length ? 'Nichts gefunden.' : 'Noch nichts geprüft.'));
+      if (!L.length) l.append(A.length ? e('div', 'm', 'Nichts gefunden.') : btn('go', '📸 Ersten Artikel prüfen', () => { ansicht = 'check'; schritt = 1; fokus = true; sp(); bau(); }));
       L.forEach(x => { const it = e('div', 'it'); if (buendel && buendel.has(x.id)) it.style.outline = '2px solid var(--acc)'; it.setAttribute('role', 'button'); it.tabIndex = 0; const im = x.s.bild ? Object.assign(e('img'), {src: x.s.bild, alt: ''}) : e('div', 'ph', (KAT[x.s.kat] || KAT.sonst).e);
         const m = e('div'); m.style.minWidth = '0'; m.append(e('div', 't', x.titel || x.s.name), e('div', 'm', datum(x.t) + (x.job ? ' · NoxRift' : ' · Privat') + (x.plat ? ' · ' + P[x.plat].l : '') + (x.wer ? ' · ' + x.wer : '')));
-        const st = btn('stat', STAT[x.status || 'geprueft'], ev => { ev.stopPropagation(); const n = {geprueft: 'eingestellt', eingestellt: 'verkauft', verkauft: 'geprueft'}[x.status || 'geprueft']; setze(x.id, 'status', n); if (n === 'eingestellt' && !x.s.seit) setze(x.id, 'seit', Date.now()); if (n === 'verkauft') { setze(x.id, 'vt', Date.now()); const v = prompt('Für wie viel verkauft? (€)', String(x.preis || '').replace('.', ',')); if (v) setze(x.id, 'vk', v); konfetti(); kopiere(ANTWORT[5][1]).then(() => toast('Verkauft ✓ – Danke-Nachricht kopiert')); } bau(); }); m.append(st);
+        const st = btn('stat', STAT[x.status || 'geprueft'], ev => { ev.stopPropagation(); const n = {geprueft: 'eingestellt', eingestellt: 'verkauft', verkauft: 'geprueft'}[x.status || 'geprueft']; setze(x.id, 'status', n); if (n === 'eingestellt' && !x.s.seit) setze(x.id, 'seit', Date.now()); if (n === 'verkauft') { setze(x.id, 'vt', Date.now()); setze(x.id, 'vk', String(x.preis || '').replace('.', ',')); konfetti(); kopiere(ANTWORT[5][1]).then(() => toast('Verkauft ✓ – Danke-Nachricht kopiert')); bau(); frage('Für wie viel verkauft? (€)', String(x.preis || '').replace('.', ','), v => { if (zahl(v)) { setze(x.id, 'vk', v); bau(); } }); return; } bau(); }); m.append(st);
         if (x.status === 'eingestellt' && x.s.seit) { const tg = Math.floor((Date.now() - x.s.seit) / 864e5); m.append(e('div', 'm', '⏱ ' + (tg ? 'seit ' + tg + (tg > 1 ? ' Tagen' : ' Tag') : 'seit heute') + ' online'));
           if (tg >= 7 && x.preis) { const np = runter(x.preis * 0.9); m.append(btn('stat', '⏰ Preis auf ' + eur(np) + ' senken', async ev => { ev.stopPropagation(); setze(x.id, 'preis', np); setze(x.id, 'seit', Date.now()); await kopiere(String(np.toFixed(2)).replace('.', ',')); toast('Neuer Preis kopiert'); bau(); })); } }
         if ((x.status || 'geprueft') === 'geprueft' && Date.now() - x.t > 3 * 864e5) m.append(e('div', 'm', '💤 seit ' + Math.floor((Date.now() - x.t) / 864e5) + ' Tagen nicht eingestellt'));
         const r = e('div'); r.style.textAlign = 'right'; r.append(e('div', 'p', x.status === 'verkauft' && x.vk ? eur(zahl(x.vk)) : x.preis ? eur(x.preis) : '–'));
-        const dup = btn('del', '⧉', ev => { ev.stopPropagation(); S = Object.assign(neu(), JSON.parse(JSON.stringify(x.s)), {id: Date.now(), status: 'geprueft', vk: '', plat: '', seit: 0, vt: 0}); fotos = []; schritt = 1; ansicht = 'check'; sp(); bau(); toast('Kopie angelegt'); }); dup.title = 'Duplizieren';
+        const dup = btn('del', '⧉', ev => { ev.stopPropagation(); S = Object.assign(neu(), JSON.parse(JSON.stringify(x.s)), {id: Date.now(), status: 'geprueft', vk: '', plat: '', seit: 0, vt: 0}); fotos = []; schritt = 1; ansicht = 'check'; sp(); bau(); toast('Kopie angelegt'); fotoLaden(x.id).then(f => { if (f.length) { fotos = f; fotoSpeichern(); bau(); } }); }); dup.title = 'Duplizieren';
         const del = btn('del', '🗑', ev => { ev.stopPropagation(); weg = x; ls('pc-verlauf', H().filter(y => y.id !== x.id)); bau(); }); del.title = 'Löschen'; r.append(dup, del);
         it.append(im, m, r); const auf = async () => { S = Object.assign(neu(), x.s); fotos = await fotoLaden(x.id); schritt = 4; ansicht = 'check'; sp(); bau(); }; it.addEventListener('click', () => { if (buendel) { buendel.has(x.id) ? buendel.delete(x.id) : buendel.add(x.id); zeige(); kasse(); } else auf(); }); it.addEventListener('keydown', ev => { if (ev.key === 'Enter') auf(); }); l.append(it); }); }
     zeige(); kasse();
     if (weg) { const u = btn('go leise', '↩ „' + (weg.titel || '').slice(0, 30) + '“ wiederherstellen', () => { const L = H(); L.unshift(weg); ls('pc-verlauf', L); weg = null; bau(); }); b.append(u); }
     const k = e('div', 'zwei'); ['vinted', 'ebay', 'kleinanzeigen', 'cardmarket'].forEach(id => { const a = e('a', 'go leise', 'Meine ' + P[id].l + ' ↗'); a.href = P[id].meine; a.target = '_blank'; a.rel = 'noopener'; k.append(a); }); b.append(e('div', 'lbl', 'Konten'), k);
-    b.append(btn('go leise', '⬇ Verlauf als Tabelle (CSV)', () => { const z = [['Datum', 'Titel', 'Status', 'Plattform', 'Empfehlung', 'Verkauft für', 'Modus']].concat(H().map(x => [datum(x.t), x.titel, STAT[x.status || 'geprueft'].slice(2), x.plat ? P[x.plat].l : '', String(x.preis || '').replace('.', ','), x.vk || '', x.job ? 'NoxRift' : 'Privat']));
+    b.append(btn('go leise', '⬇ Verlauf als Tabelle (CSV)', () => { const z = [['Datum', 'Titel', 'Status', 'Plattform', 'Empfehlung', 'Verkauft für', 'Modus', 'Person', 'Einkauf']].concat(H().map(x => [datum(x.t), x.titel, STAT[x.status || 'geprueft'].slice(2), x.plat ? P[x.plat].l : '', String(x.preis || '').replace('.', ','), x.vk || '', x.job ? 'NoxRift' : 'Privat', x.wer || '', x.s.ek || '']));
       const csv = '﻿' + z.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); a.download = 'Hustle-Radar Verlauf.csv'; a.click(); toast('Tabelle gespeichert'); }));
     const bk = e('div', 'zwei'); bk.append(btn('go leise', '💾 Backup speichern', () => { const daten = {app: 'hustle-radar', v: 1, verlauf: H(), sig: lj('pc-sig', ''), ziel: lj('pc-ziel', '')}; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(daten)], {type: 'application/json'})); a.download = 'Hustle-Radar Backup.json'; a.click(); toast('Backup gespeichert'); }));
     const il = e('label', 'go leise', '📥 Backup laden'); il.style.cursor = 'pointer'; const ii = e('input'); ii.type = 'file'; ii.accept = '.json,application/json'; ii.style.display = 'none';
-    ii.addEventListener('change', async () => { try { const d = JSON.parse(await ii.files[0].text()); if (d.app !== 'hustle-radar' || !Array.isArray(d.verlauf)) throw 0; const L = H(); const ids = new Set(L.map(x => x.id)); const NL = L.concat(d.verlauf.filter(x => x && x.id && x.s && !ids.has(x.id))).sort((a, z) => z.t - a.t); ls('pc-verlauf', NL.slice(0, 200)); if (d.sig && !lj('pc-sig', '')) ls('pc-sig', d.sig); if (d.ziel && !lj('pc-ziel', '')) ls('pc-ziel', d.ziel); toast((NL.length - L.length) + ' Einträge übernommen'); bau(); } catch (x) { toast('Datei passt nicht'); } });
+    ii.addEventListener('change', async () => { try { einspielen(JSON.parse(await ii.files[0].text())); } catch (x) { toast('Datei passt nicht'); } });
     il.append(ii); bk.append(il); b.append(e('div', 'lbl', 'Handy ↔ PC abgleichen'), bk);
+    const bk2 = e('div', 'zwei'); bk2.append(kBtn('📋 Backup als Text kopieren', () => JSON.stringify({app: 'hustle-radar', v: 1, verlauf: H().map(x => Object.assign({}, x, {s: Object.assign({}, x.s, {bild: ''})}))}), 'leise'), btn('go leise', '📋 Backup-Text einfügen', () => frage('Backup-Text hier einfügen', '', v => { try { einspielen(JSON.parse(v)); } catch (x) { toast('Text passt nicht'); } }, 'text'))); b.append(bk2, e('div', 'm', 'Tipp: Backup-Text per WhatsApp an dich selbst schicken und auf dem anderen Gerät einfügen.'));
     root.append(b);
   }
   function datenschutz() {
     const b = e('section', 'box'); b.append(e('h2', '', 'Datenschutz & Nutzung'), e('div', 'sub', 'Stand: 12.11.2026'));
     [['Wer steckt dahinter?', 'Hustle-Radar ist eine interne App von NOXRIFT (Manuel). Sie ist nur für das NoxRift-Team gedacht und mit einem Zugangscode geschützt.'],
-     ['Welche Daten?', 'Fotos, Artikelnamen, Zustand, Preise und dein Verlauf werden nur auf deinem Gerät gespeichert (im Browser-Speicher). Es gibt keinen eigenen Server, kein Konto, keine Cookies, kein Tracking und keine Werbung. Fotos verlassen dein Gerät nur, wenn du selbst auf „Teilen“ oder „An NoxRift schicken“ tippst.'],
+     ['Welche Daten?', 'Fotos, Artikelnamen, Zustand, Preise und dein Verlauf werden nur auf deinem Gerät gespeichert (im Browser-Speicher). Es gibt keinen eigenen Server, kein Konto, keine Cookies, kein Tracking und keine Werbung. Fotos verlassen dein Gerät nur, wenn du selbst auf „Teilen“ oder „An NoxRift schicken“ tippst. Backups (💾) speicherst du selbst als Datei oder Text; die Auswahl „Ich bin“ bleibt ebenfalls nur auf dem Gerät.'],
      ['Hosting', 'Die App liegt bei GitHub Pages (GitHub Inc.). Beim Aufruf verarbeitet GitHub technisch nötige Daten wie deine IP-Adresse, um die Seite auszuliefern. Mehr dazu in der Datenschutzerklärung von GitHub.'],
      ['Andere Seiten', 'Links zu Vinted, eBay, Kleinanzeigen und Cardmarket öffnen deren Seiten bzw. Apps. Dort gelten deren eigene Datenschutzregeln. Die App liest nichts aus deinen Konten aus.'],
      ['Arbeitsmodus', 'Im Modus „Arbeit für NoxRift“ sind Anzeigen für die NoxRift-Konten gedacht. Zugangsdaten werden nie in der App gespeichert. Im Modus „Privat“ kannst du die App für deine eigenen Sachen nutzen.'],
@@ -435,9 +442,9 @@
 
   function erinnerung() { const A = H(); const lh = A.filter(liegt).length; const ne = A.filter(x => (x.status || 'geprueft') === 'geprueft' && Date.now() - x.t > 3 * 864e5).length; if (!lh && !ne) return;
     root.append(btn('go leise', '⏰ ' + [lh ? lh + ' Ladenhüter' : '', ne ? ne + ' noch nicht eingestellt' : ''].filter(Boolean).join(' · ') + ' → ansehen', () => { filt = lh ? 'alt' : 'geprueft'; ansicht = 'verlauf'; bau(); })); }
-  function neuig() { if (lj('pc-neu', '') === 'v18') return; ls('pc-neu', 'v18'); const d = e('div', 'tipp'); d.append(e('b', '', '✨ Neu in v18'), e('div', '', 'Hell/Dunkel ☀️, große Schrift A+, „Ich bin“-Auswahl, Wochenziel, LEGO & Figuren, Backup für Handy ↔ PC, Wischen zwischen den Schritten, Erinnerungen an Ladenhüter.'), btn('go leise', 'Alles klar', () => d.remove())); root.children[0] ? root.children[0].after(d) : root.append(d); }
+  function neuig() { if (lj('pc-neu', '') === 'v19') return; ls('pc-neu', 'v19'); const d = e('div', 'tipp'); d.append(e('b', '', '✨ Neu in v19'), e('div', '', 'Knöpfe reagieren beim ersten Tippen, Eingabefenster klappen jetzt auch in NoxRift, Backup als Text (per WhatsApp an dich selbst), Duplizieren nimmt die Fotos mit, „1.200“ wird richtig gelesen. Dazu: Hell/Dunkel ☀️, große Schrift A+, „Ich bin“, Wochenziel, LEGO & Figuren.'), btn('go leise', 'Alles klar', () => d.remove())); root.children[0] ? root.children[0].after(d) : root.append(d); }
   function bau() {
-    root.replaceChildren(); root.className = 'pc' + (hell ? ' hell' : '') + (gross ? ' gross' : ''); if (!window.dash) document.body.style.background = hell ? '#f5f6fa' : ''; kopf();
+    if (druck) { warte = true; clearTimeout(warteT); warteT = setTimeout(() => { druck = false; if (warte) { warte = false; bau(); } }, 700); return; } root.replaceChildren(); root.className = 'pc' + (hell ? ' hell' : '') + (gross ? ' gross' : ''); if (!window.dash) document.body.style.background = hell ? '#f5f6fa' : ''; kopf();
     if (ansicht === 'verlauf') verlauf();
     else if (ansicht === 'datenschutz') datenschutz();
     else { erinnerung(); leiste(); [s1, s2, s3, s4][Math.min(Math.max(schritt, 1), 4) - 1](); }
@@ -452,11 +459,13 @@
     root.replaceChildren(); const t = e('div', 'top'); const br = e('div', 'brand'); br.append(svg(LOGO)); const nm = e('div'); nm.append(e('b', '', 'Hustle-Radar'), e('small', '', 'BY NOXRIFT')); br.append(nm); t.append(br); root.append(t);
     const c = e('section', 'box'); c.append(e('h2', '', 'Nur fürs Team'), e('div', 'sub', 'Bitte Zugangscode eingeben.'));
     const i = e('input'); i.type = 'password'; i.inputMode = 'numeric'; i.autocomplete = 'off'; i.placeholder = 'Zugangscode';
-    const m = e('div'); const los = async () => { if (await pruef(i.value)) { ls('pc-zugang', HASH); bau(); } else m.replaceChildren(e('div', 'warn', 'Code falsch.')); };
-    i.addEventListener('keydown', ev => { if (ev.key === 'Enter') los(); }); c.append(i, btn('go', 'Öffnen', los), m); root.append(c); }
+    const m = e('div'); const los = async () => { if (await pruef(i.value)) { ls('pc-zugang', HASH); bau(); neuig(); } else { m.replaceChildren(e('div', 'warn', 'Code falsch – bitte nochmal versuchen.')); i.value = ''; i.focus(); } };
+    i.addEventListener('keydown', ev => { if (ev.key === 'Enter') los(); }); c.append(i, btn('go', 'Öffnen', los), m); root.append(c); setTimeout(() => i.focus(), 50); }
+  let druck = false, warte = false, warteT = 0; root.addEventListener('pointerdown', () => { druck = true; }, true);
+  const losl = () => setTimeout(() => { druck = false; if (warte) { warte = false; clearTimeout(warteT); bau(); } }, 0); addEventListener('pointerup', losl, true); addEventListener('pointercancel', losl, true);
   let tx = null; root.addEventListener('touchstart', ev => { tx = /INPUT|TEXTAREA/.test(ev.target.tagName) ? null : [ev.touches[0].clientX, ev.touches[0].clientY]; }, {passive: true});
   root.addEventListener('touchend', ev => { if (!tx || ansicht !== 'check') return; const dx = ev.changedTouches[0].clientX - tx[0], dy = ev.changedTouches[0].clientY - tx[1]; tx = null; if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6) return; const z = schritt + (dx < 0 ? 1 : -1); if (z < 1 || z > 4) return; schritt = z; if (z === 4) merken(); sp(); bau(); });
   addEventListener('keydown', ev => { if (!(ev.ctrlKey || ev.metaKey) || !/^Arrow(Left|Right)$/.test(ev.key) || ansicht !== 'check' || !root.offsetParent || /INPUT|TEXTAREA/.test((document.activeElement || {}).tagName || '')) return; const z = schritt + (ev.key === 'ArrowRight' ? 1 : -1); if (z < 1 || z > 4) return; ev.preventDefault(); schritt = z; if (z === 4) merken(); sp(); bau(); });
-  addEventListener('offline', () => toast('Offline – alles läuft weiter, Links brauchen Internet')); 
-  if (window.dash || lj('pc-zugang', '') === HASH) { bau(); neuig(); fotoLaden(S.id).then(f => { if (f.length && !fotos.length) { fotos = f; bau(); } }); } else sperre();
+  addEventListener('offline', () => toast('Offline – alles läuft weiter, Links brauchen Internet')); addEventListener('online', () => toast('Wieder online ✓')); 
+  if (window.dash || lj('pc-zugang', '') === HASH) { bau(); neuig(); setTimeout(aufraeumen, 3000); fotoLaden(S.id).then(f => { if (f.length && !fotos.length) { fotos = f; bau(); } }); } else sperre();
 })();
